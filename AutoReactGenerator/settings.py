@@ -17,7 +17,10 @@ SECRET_KEY = "django-insecure-_3)9(dlg32hjyuhdbse*%_cov#gk-+&z(uz*bb=^$*pjemw=9j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "localhost",
+    "autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net"
+]
 
 
 # Application definition
