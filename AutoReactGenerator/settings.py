@@ -24,7 +24,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "localhost",
     "autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net",
-    "autoreactgenerator-w-mwpdu.run.goorm.site"
+    "https://fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev",
 ]
 
 
@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "deployTest",
-    "rest_framework"
+    "corsheaders",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -135,3 +136,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10
 }
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000",
+    "https://fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev:3000",
+]
