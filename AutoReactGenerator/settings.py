@@ -43,6 +43,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     "django.middleware.security.SecurityMiddleware",
     'whitenoise.middleware.WhiteNoiseMiddleware',
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -140,5 +141,7 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000", 
     "http://127.0.0.1:3000",
-    "https://fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev:3000",
+    "https://fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev",
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
