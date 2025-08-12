@@ -23,7 +23,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "localhost",
-    "autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net"
+    "autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net",
+    "autoreactgenerator-w-mwpdu.run.goorm.site/"
 ]
 
 
