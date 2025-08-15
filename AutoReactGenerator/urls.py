@@ -6,5 +6,6 @@ urlpatterns = [
     #path('', redirect('hello_world_api')),
     path("admin/", admin.site.urls),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('api/authentication/', include('authentication.urls')),
     path('api/deployTest/', include('deployTest.urls'))
 ]
