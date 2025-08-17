@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "authentication",
     "corsheaders",
     "rest_framework",
+    'encrypted_model_fields',
 ]
 
 MIDDLEWARE = [
@@ -152,3 +153,5 @@ CORS_ALLOWED_ORIGINS = [
 CORS_ORIGIN_ALLOW_ALL = True
 
 AUTH_USER_MODEL = 'authentication.ARUser'
+
+FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', '')
