@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -12,5 +12,5 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
     # API 키 조회(GET), 수정(Update)
-    path('apikey/', GeminiAPIKeyView.as_view(), name='api_key_manage')
+    path('apikey/', GeminiAPIKeyView.as_view(), name='api_key_manage'),
 ]

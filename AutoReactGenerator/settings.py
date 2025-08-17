@@ -37,10 +37,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "drf_yasg",
     "deployTest",
     "authentication",
     "corsheaders",
-    "rest_framework",
     'encrypted_model_fields',
 ]
 
