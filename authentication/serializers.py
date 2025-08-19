@@ -6,7 +6,7 @@ class ARUserRegisterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ARUser
-        fields = ('username', 'password', 'nickname', 'email', 'bio')
+        fields = ('username', 'password', 'nickname', 'email', 'bio', 'gemini_key_encrypted')
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': False}, 
@@ -17,7 +17,14 @@ class ARUserRegisterSerializer(serializers.ModelSerializer):
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
+            gemini_key_encrypted=validated_data['gemini_key_encrypted'],
             nickname=validated_data.get('nickname', ''),
             bio=validated_data.get('bio', '')
         )
         return user
+
+class GeminiKeySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ARUser
+        fields = ('gemini_key_encrypted',)
+        
