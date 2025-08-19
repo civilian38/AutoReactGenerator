@@ -21,11 +21,13 @@ schema_view = get_schema_view(
 
 
 urlpatterns = [
-    #path('', redirect('hello_world_api')),
     path("admin/", admin.site.urls),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+
+    # api
     path('api/authentication/', include('authentication.urls')),
     path('api/deployTest/', include('deployTest.urls')),    
+    path('api/project/', include('project.urls')),
 
     #swagger : Need to be handled after production
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
