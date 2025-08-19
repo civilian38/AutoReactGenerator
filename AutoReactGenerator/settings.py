@@ -37,12 +37,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "rest_framework",
     "drf_yasg",
     "deployTest",
     "authentication",
-    "corsheaders",
-    'encrypted_model_fields',
+    "project",
+    "encrypted_model_fields",
 ]
 
 MIDDLEWARE = [
