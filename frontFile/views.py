@@ -30,4 +30,4 @@ class FrontFileRUDView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsOwnerOrReadOnly]
     
     def perform_update(self, serializer):
-        serializer.save(created_by=self.request.user)
+        serializer.save(created_by=self.request.user, project_under=serializer.instance.project_under)

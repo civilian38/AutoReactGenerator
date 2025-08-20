@@ -4,13 +4,14 @@ from .models import APIDoc
 
 class APIDocSerializer(serializers.ModelSerializer):
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    project_under = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = APIDoc
         fields = '__all__'
 
 class APIDocCreateSerializer(serializers.ModelSerializer):
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
-    project_under = serializers.HiddenField(default=None) 
+    project_under = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = APIDoc
         fields = '__all__'

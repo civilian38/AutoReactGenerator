@@ -4,13 +4,14 @@ from .models import FrontFile
 
 class FrontFileSerializer(serializers.ModelSerializer):
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
+    project_under = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = FrontFile
         fields = '__all__'
 
 class FrontFileCreateSerializer(serializers.ModelSerializer):
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
-    project_under = serializers.HiddenField(default=None) 
+    project_under = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = FrontFile
         fields = '__all__'
