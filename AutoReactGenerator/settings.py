@@ -40,9 +40,11 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "drf_yasg",
-    "deployTest",
     "authentication",
     "project",
+    "apidoc",
+    "frontFile",
+    "deployTest",
     "encrypted_model_fields",
 ]
 
