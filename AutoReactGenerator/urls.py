@@ -28,6 +28,7 @@ urlpatterns = [
     path('api/authentication/', include('authentication.urls')),
     path('api/deployTest/', include('deployTest.urls')),    
     path('api/project/', include('project.urls')),
+    path('api/apidocs/', include('apidoc.urls')),
 
     #swagger : Need to be handled after production
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
