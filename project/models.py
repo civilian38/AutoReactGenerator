@@ -9,4 +9,4 @@ class Project(models.Model):
 
     def __str__(self):
         owner_name = self.created_by.nickname if self.created_by.nickname else self.created_by.username
-        return f'{owner_name} - {self.name}'
+        return f'{self.name}({owner_name})'
