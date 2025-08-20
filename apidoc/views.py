@@ -22,9 +22,12 @@ class APIDocLCView(ListCreateAPIView):
     def perform_create(self, serializer):
         project_id = self.kwargs.get('project_id')
         project = Project.objects.get(id=project_id)
-        serializer.save(project_under=project)
+        serializer.save(created_by=self.request.user, project_under=project)
 
 class APIDocRUDView(RetrieveUpdateDestroyAPIView):
     queryset = APIDoc.objects.all()
     serializer_class = APIDocSerializer
     permission_classes = [IsOwnerOrReadOnly]
+    
+    def perform_update(self, serializer):
+        serializer.save(created_by=self.request.user)

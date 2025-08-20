@@ -1,22 +1,22 @@
 from rest_framework import serializers
 
-from .models import APIDoc
+from .models import FrontFile
 
-class APIDocSerializer(serializers.ModelSerializer):
+class FrontFileSerializer(serializers.ModelSerializer):
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
-        model = APIDoc
+        model = FrontFile
         fields = '__all__'
 
-class APIDocCreateSerializer(serializers.ModelSerializer):
+class FrontFileCreateSerializer(serializers.ModelSerializer):
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
     project_under = serializers.HiddenField(default=None) 
     class Meta:
-        model = APIDoc
+        model = FrontFile
         fields = '__all__'
 
 
-class APIDocListSerializer(serializers.ModelSerializer):
+class FrontFileListSerializer(serializers.ModelSerializer):
     class Meta:
-        model = APIDoc
-        fields = ['id', 'url', 'http_method']
+        model = FrontFile
+        fields = ['id', 'address', 'updated_at']
