@@ -151,7 +151,12 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000", 
     "http://127.0.0.1:3000",
-    "https://fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev",
+    "fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev",
+    "autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net"
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net',
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
