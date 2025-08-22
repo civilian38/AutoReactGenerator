@@ -151,15 +151,14 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000", 
     "http://127.0.0.1:3000",
-    "fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev",
+    "https://fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev",
+    "https://black-plant-0bf2de000.2.azurestaticapps.net"
     "autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net',
 ]
-
-CORS_ORIGIN_ALLOW_ALL = True
 
 AUTH_USER_MODEL = 'authentication.ARUser'
 
