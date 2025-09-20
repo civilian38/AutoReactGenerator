@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     "project",
     "apidoc",
     "frontFile",
-    "deployTest",
+    "frontPage",
     "encrypted_model_fields",
 ]
 
