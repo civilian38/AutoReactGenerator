@@ -20,8 +20,7 @@ class FrontFileLCView(ListCreateAPIView):
         return FrontFile.objects.filter(project_under__id=project_id)
 
     def perform_create(self, serializer):
-        project_id = self.kwargs.get('project_id')
-        project = Project.objects.get(id=project_id)
+        project = Project.objects.get(self.kwargs.get('project_id'))
         serializer.save(created_by=self.request.user, project_under=project)
 
 class FrontFileRUDView(RetrieveUpdateDestroyAPIView):
