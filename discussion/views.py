@@ -1,4 +1,4 @@
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,6 +10,7 @@ from google import genai
 from .models import *
 from .serializers import *
 from .LLMService import generate_response
+from .permissions import DiscussionChatIsOwnerOrReadOnly
 
 class DiscussionLCView(ListCreateAPIView):
     permission_classes = [IsOwnerOrReadOnly]
@@ -35,6 +36,16 @@ class DiscussionRUDView(RetrieveUpdateDestroyAPIView):
 
     def perform_update(self, serializer):
         serializer.save(project_under=serializer.instance.project_under)
+
+class DiscussChatListView(ListAPIView):
+    permission_classes = [DiscussionChatIsOwnerOrReadOnly]
+    serializer_class = DiscussionChatSerializer
+
+    def get_queryset(self):
+        discussion_id = self.kwargs.get('discussion_id')
+        discussion = Discussion.objects.get(id=discussion_id)
+        return DiscussionChat.objects.filter(discussion_under=discussion)
+
 
 class ChatAPIView(APIView):
     permission_classes = [IsAuthenticated]
