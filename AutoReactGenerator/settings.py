@@ -22,6 +22,7 @@ SECRET_KEY = "django-insecure-_3)9(dlg32hjyuhdbse*%_cov#gk-+&z(uz*bb=^$*pjemw=9j
 DEBUG = True
 
 ALLOWED_HOSTS = [
+    "127.0.0.1",
     "localhost",
     "autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net",
     "https://fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev",
