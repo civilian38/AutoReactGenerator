@@ -69,6 +69,8 @@ class ChatAPIView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         response = generate_response(serializer.validated_data['content'], discussion_id, request.user.id)
+        if response is Response:
+            return response
         serializer.save(discussion_under=discussion_object)
 
         llm_response_data = {
