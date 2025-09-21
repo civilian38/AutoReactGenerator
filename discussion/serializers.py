@@ -21,3 +21,9 @@ class DiscussionChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = DiscussionChat
         fields = '__all__'
+        read_only_fields = ('is_by_user', )
+
+class DiscussionChatLLMSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DiscussionChat
+        fields = '__all__'
