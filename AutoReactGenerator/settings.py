@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "apidoc",
     "frontFile",
     "frontPage",
+    "discussion",
     "encrypted_model_fields",
 ]
 
