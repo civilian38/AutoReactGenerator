@@ -72,7 +72,7 @@ class ChatAPIView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         response = generate_response(serializer.validated_data['content'], discussion_id, request.user.id)
 
-        if response is Response:
+        if not isinstance(response, str):
             return response
 
         serializer.save(discussion_under=discussion_object)
@@ -115,6 +115,9 @@ class ChatSummaryAPIView(APIView):
         try:
             with transaction.atomic():
                 summary_content = summarize_chats(discussion_id, request.user.id)
+                if not isinstance(summary_content, str):
+                    return summary_content
+
                 update_data = {'summary': summary_content}
                 serializer = DiscussionSummarySerializer(instance=discussion_object, data=update_data, partial=True)
                 serializer.is_valid(raise_exception=True)
