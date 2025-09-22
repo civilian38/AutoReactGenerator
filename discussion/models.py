@@ -9,7 +9,7 @@ class Discussion(models.Model):
     project_under = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'{self.project.name} - {self.title}'
+        return f'{self.project_under.name} - {self.title}'
 
 class DiscussionChat(models.Model):
     discussion_under = models.ForeignKey(Discussion, on_delete=models.CASCADE)

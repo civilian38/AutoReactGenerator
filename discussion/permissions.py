@@ -5,3 +5,7 @@ class DiscussionChatIsOwnerOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         return obj.discussion_under.project_under.created_by == request.user
+
+class IsProjectOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        return obj.project_under.created_by == request.user

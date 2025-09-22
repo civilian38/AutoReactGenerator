@@ -10,6 +10,13 @@ class DiscussionSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('summary', )
 
+class DiscussionSummarySerializer(serializers.ModelSerializer):
+    project_under = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Discussion
+        fields = '__all__'
+
 class DiscussionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discussion
