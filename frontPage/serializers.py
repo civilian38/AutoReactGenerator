@@ -13,4 +13,4 @@ class FrontPageSerializer(serializers.ModelSerializer):
 class FrontPageListSerializer(serializers.ModelSerializer):
     class Meta:
         model = FrontPage
-        fields = ['url', 'is_implemented']
+        fields = ['id', 'url', 'is_implemented']

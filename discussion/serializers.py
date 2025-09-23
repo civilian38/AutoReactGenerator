@@ -20,7 +20,7 @@ class DiscussionSummarySerializer(serializers.ModelSerializer):
 class DiscussionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discussion
-        fields = ('title', 'updated_at')
+        fields = ('id', 'title', 'updated_at')
 
 class DiscussionChatSerializer(serializers.ModelSerializer):
     discussion_under = serializers.PrimaryKeyRelatedField(read_only=True)
