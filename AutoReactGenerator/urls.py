@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/apidocs/', include('apidoc.urls')),
     path('api/frontfiles/', include('frontFile.urls')),
     path('api/frontpages/', include('frontPage.urls')),
+    path('api/discussion/', include('discussion.urls')),
 
     #swagger : Need to be handled after production
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
