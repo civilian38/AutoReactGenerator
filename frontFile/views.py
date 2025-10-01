@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from drf_yasg.utils import swagger_auto_schema, no_body
 
-from AutoReactGenerator.permissions import IsOwnerOrReadOnly
+from AutoReactGenerator.permissions import IsOwnerOrReadOnly, SubClassIsOwnerOrReadOnly
 from project.models import Project
 
 from .models import FrontFile
@@ -37,7 +37,7 @@ class FolderLCView(APIView):
     @swagger_auto_schema(
             request_body=FolderCreateSerializer,
             responses={
-                200: FolderDetailSerializer,
+                200: FolderRetrieveSerializer,
                 400: 'Bad Request',
                 404: 'Not Found'
             }
@@ -49,8 +49,26 @@ class FolderLCView(APIView):
         serializer = FolderCreateSerializer(data=request.data, context={'project': project_object})
         if serializer.is_valid(raise_exception=True):
             new_folder = serializer.save(project_under=project_object)
-            response_serializer = FolderDetailSerializer(new_folder)
+            response_serializer = FolderRetrieveSerializer(new_folder)
             return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+
+class FolderRUDView(RetrieveUpdateDestroyAPIView):
+    queryset = Folder.objects.all()
+    permission_classes = [SubClassIsOwnerOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return FolderRetrieveSerializer
+        return FolderUpdateDeleteSerializer
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['project'] = self.get_object().project_under
+        return context
+
+    def perform_update(self, serializer):
+        serializer.save(project_under=serializer.instance.project_under)
 
 
 class FrontFileLCView(ListCreateAPIView):

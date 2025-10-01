@@ -4,14 +4,14 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
-from AutoReactGenerator.permissions import IsOwnerOrReadOnly, SubPageIsOwnerOrReadOnly
+from AutoReactGenerator.permissions import IsOwnerOrReadOnly, SubClassIsOwnerOrReadOnly
 from drf_yasg.utils import swagger_auto_schema, no_body
 from google import genai
 
 from .models import *
 from .serializers import *
 from .LLMService import generate_response, summarize_chats
-from .permissions import DiscussionChatIsOwnerOrReadOnly, IsProjectOwner
+from .permissions import DiscussionChatIsOwnerOrReadOnly
 
 class DiscussionLCView(ListCreateAPIView):
     permission_classes = [IsOwnerOrReadOnly]
@@ -31,7 +31,7 @@ class DiscussionLCView(ListCreateAPIView):
         serializer.save(project_under=project)
 
 class DiscussionRUDView(RetrieveUpdateDestroyAPIView):
-    permission_classes = [SubPageIsOwnerOrReadOnly]
+    permission_classes = [SubClassIsOwnerOrReadOnly]
     queryset = Discussion.objects.all()
     serializer_class = DiscussionSerializer
 
@@ -49,7 +49,7 @@ class DiscussChatListView(ListAPIView):
 
 
 class ChatAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsProjectOwner]
+    permission_classes = [IsAuthenticated, SubClassIsOwnerOrReadOnly]
     pagination_class = None
 
     @swagger_auto_schema(
@@ -89,7 +89,7 @@ class ChatAPIView(APIView):
         return Response(llm_response_serializer.data)
 
 class ChatSummaryAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsProjectOwner]
+    permission_classes = [IsAuthenticated, SubClassIsOwnerOrReadOnly]
     pagination_class = None
 
 

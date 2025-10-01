@@ -38,17 +38,35 @@ class FolderCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Parent Folder Belongs to Wrong Project")
         
         if Folder.objects.filter(parent_folder=parent_folder, name=data.get('name')).exists():
-            raise serializers.ValidationError("There is Already Folder Whose Name is Same")
+            raise serializers.ValidationError("There is Already Folder of Same Name")
 
         return data
 
-class FolderDetailSerializer(serializers.ModelSerializer):
+class FolderRetrieveSerializer(serializers.ModelSerializer):
     full_path = serializers.CharField(source='get_full_path', read_only=True)
 
     class Meta:
         model = Folder
         fields = ['id', 'name', 'parent_folder', 'project_under', 'full_path']
+        read_only_fields = fields
 
+class FolderUpdateDeleteSerializer(serializers.ModelSerializer):
+    project_under = serializers.PrimaryKeyRelatedField(read_only=True)
+    class Meta:
+        model = Folder
+        fields = '__all__'
+    
+    def validate(self, data):
+        project = self.context.get('project')
+        parent_folder = data.get('parent_folder')
+
+        if parent_folder.project_under != project:
+            raise serializers.ValidationError("Parent Folder Belongs to Wrong Project")
+        
+        if Folder.objects.filter(parent_folder=parent_folder, name=data.get('name')).exists():
+            raise serializers.ValidationError("There is Already Folder of Same Name")
+
+        return data
 
 class FolderStructureSerializer(serializers.ModelSerializer):
     subfolders = serializers.SerializerMethodField()

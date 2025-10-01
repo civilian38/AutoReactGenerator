@@ -1,10 +1,9 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 
-from AutoReactGenerator.permissions import IsOwnerOrReadOnly
+from AutoReactGenerator.permissions import IsOwnerOrReadOnly, SubClassIsOwnerOrReadOnly
 from project.models import Project
 from .models import FrontPage
 from .serializers import *
-from .permissions import FrontPageIsOwnerOrReadOnly
 
 class FrontPageLCView(ListCreateAPIView):
     permission_classes = [IsOwnerOrReadOnly]
@@ -24,7 +23,7 @@ class FrontPageLCView(ListCreateAPIView):
         serializer.save(project_under=project, is_implemented=True)
 
 class FrontPageRUDView(RetrieveUpdateDestroyAPIView):
-    permission_classes = [FrontPageIsOwnerOrReadOnly]
+    permission_classes = [SubClassIsOwnerOrReadOnly]
     queryset = FrontPage.objects.all()
     serializer_class = FrontPageSerializer
 
