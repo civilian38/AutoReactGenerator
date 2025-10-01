@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import FrontFile
+from .models import *
 
 class FrontFileSerializer(serializers.ModelSerializer):
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -16,8 +16,49 @@ class FrontFileCreateSerializer(serializers.ModelSerializer):
         model = FrontFile
         fields = '__all__'
 
-
 class FrontFileListSerializer(serializers.ModelSerializer):
     class Meta:
         model = FrontFile
-        fields = ['id', 'address', 'updated_at']
+        fields = ['id', 'address']
+
+class FolderCreateSerializer(serializers.ModelSerializer):
+    project_under = serializers.PrimaryKeyRelatedField(
+        queryset=Project.objects.all(),
+        write_only=True
+    )
+    class Meta:
+        model = Folder
+        fields = ['name', 'parent_folder', 'project_under']
+    
+    def validate(self, data):
+        project = self.context.get('project')
+        parent_folder = data.get('parent_folder')
+
+        if parent_folder.project_under != project:
+            raise serializers.ValidationError("Parent Folder Belongs to Wrong Project")
+        
+        if Folder.objects.filter(parent_folder=parent_folder, name=data.get('name')).exists():
+            raise serializers.ValidationError("There is Already Folder Whose Name is Same")
+
+        return data
+
+class FolderDetailSerializer(serializers.ModelSerializer):
+    full_path = serializers.CharField(source='get_full_path', read_only=True)
+
+    class Meta:
+        model = Folder
+        fields = ['id', 'name', 'parent_folder', 'project_under', 'full_path']
+
+
+class FolderStructureSerializer(serializers.ModelSerializer):
+    subfolders = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Folder
+        fields = ('id', 'name', 'subfolders')
+    
+    def get_subfolders(self, obj):
+        subfolders = obj.subfolders.all()
+        serializer = FolderStructureSerializer(subfolders, many=True, context=self.context)
+        
+        return serializer.data

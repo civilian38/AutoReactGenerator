@@ -5,12 +5,15 @@ from project.models import Project
 class Folder(models.Model):
     project_under = models.ForeignKey(Project, on_delete=models.CASCADE)
     parent_folder = models.ForeignKey('self', null=True, blank=True, related_name='subfolders', on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)    
+    name = models.CharField(max_length=255)
 
     def __str__(self):
-        if self.parent:
-            return f"{self.parent}/{self.name}"
-        return f"/{self.name}"
+        return f'({self.project_under}) {self.get_full_path()}'
+
+    def get_full_path(self):
+        if self.parent_folder:
+            return f"{self.parent_folder.get_full_path()}/{self.name}"
+        return f"{self.name}"
     
     def is_root(self):
         return self.parent_folder is None
@@ -26,7 +29,7 @@ class ProjectFile(models.Model):
     def __str__(self):
         return f'({self.project_under}) {self.folder}/{self.name}'
     
-    def file_path(self):
+    def get_file_path(self):
         return f'{self.folder}/{self.name}'
 
 class FrontFile(models.Model):
