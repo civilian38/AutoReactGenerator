@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import CreateAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -8,7 +8,7 @@ from drf_yasg.utils import swagger_auto_schema, no_body
 from AutoReactGenerator.permissions import IsOwnerOrReadOnly, SubClassIsOwnerOrReadOnly
 from project.models import Project
 
-from .models import FrontFile
+from .models import *
 from .serializers import *
 
 class FolderLCView(APIView):
@@ -70,6 +70,18 @@ class FolderRUDView(RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         serializer.save(project_under=serializer.instance.project_under)
 
+class ProjectFileCView(CreateAPIView):
+    permission_classes = [IsOwnerOrReadOnly]
+    serializer_class = ProjectFileCreateSerializer
+
+class ProjectFileRUDView(RetrieveUpdateDestroyAPIView):
+    queryset = ProjectFile.objects.all()
+    permission_classes = [SubClassIsOwnerOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return ProjectFileRetrieveSerializer
+        return ProjectFileUpdateDeleteSerializer
 
 class FrontFileLCView(ListCreateAPIView):
     permission_classes = [IsOwnerOrReadOnly]

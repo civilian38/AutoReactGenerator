@@ -3,5 +3,7 @@ from .views import *
 
 urlpatterns = [
     path('<int:project_id>/folders/', FolderLCView.as_view(), name='folder-list-create'),
-    path('folders/<int:pk>/', FolderRUDView.as_view(), name='folder-retrieve-update-delete')
+    path('folder/<int:pk>/', FolderRUDView.as_view(), name='folder-retrieve-update-delete'),
+    path('projectfile/create/', ProjectFileCView.as_view(), name='file-create-view'),
+    path('projectfile/<int:pk>/', ProjectFileRUDView.as_view(), name='file-retrieve-update-delete')
 ]

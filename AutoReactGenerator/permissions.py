@@ -6,7 +6,6 @@ class IsOwner(permissions.BasePermission):
 
 class IsOwnerOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
-        return True
         if request.method in permissions.SAFE_METHODS:
            return True
         return request.user and request.user.is_authenticated
@@ -18,7 +17,6 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
 class SubClassIsOwnerOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
-        return True
         if request.method in permissions.SAFE_METHODS:
            return True
         return request.user and request.user.is_authenticated
