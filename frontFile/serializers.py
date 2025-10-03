@@ -22,25 +22,19 @@ class FrontFileListSerializer(serializers.ModelSerializer):
         fields = ['id', 'address']
 
 class FolderCreateSerializer(serializers.ModelSerializer):
-    project_under = serializers.PrimaryKeyRelatedField(
-        queryset=Project.objects.all(),
-        write_only=True
-    )
+    project_under = serializers.PrimaryKeyRelatedField(read_only=True)
     class Meta:
         model = Folder
         fields = ['name', 'parent_folder', 'project_under']
     
     def validate(self, data):
-        instance = self.instance
         project = self.context.get('project')
         parent_folder = data.get('parent_folder')
 
         if parent_folder.project_under != project:
             raise serializers.ValidationError("Parent Folder Belongs to Wrong Project")
         
-        name = data.get('name', instance.name)
-        queryset = Folder.objects.filter(parent_folder=parent_folder, name=name)
-        if queryset.exclude(pk=instance.pk).exists():
+        if Folder.objects.filter(parent_folder=parent_folder, name=data.get('name')).exists():
             raise serializers.ValidationError("There is Already Folder of Same Name")
 
         return data
