@@ -37,6 +37,8 @@ class FolderUpdateDeleteSerializer(serializers.ModelSerializer):
     def validate(self, data):
         project = self.context.get('project')
         parent_folder = data.get('parent_folder')
+        if not parent_folder:
+            parent_folder = self.instance.parent_folder
 
         if parent_folder.project_under != project:
             raise serializers.ValidationError("Parent Folder Belongs to Wrong Project")
