@@ -46,34 +46,9 @@ def summarize_chats(discussion_id, user_id):
     user_obj = ARUser.objects.get(id=user_id)
     api_key = user_obj.gemini_key_encrypted
 
-    try:
-        client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-2.5-pro",
-            contents=message
-        )
-        return response.text
-    except ClientError as e:
-        return Response(
-            {
-                "type": "ClientError",
-                "message": e.message,
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    except ServerError as e:
-        return Response(
-            {
-                "type": "ServerError",
-                "message": e.message,
-            },
-            status=status.HTTP_502_BAD_GATEWAY
-        )
-    except Exception as e:
-        return Response(
-            {
-                "type": "UnexpectedError",
-                "message": str(e),
-            },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
-        )
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model="gemini-2.5-pro",
+        contents=message
+    )
+    return response.text
