@@ -56,7 +56,7 @@ jobs:
           containerAppName: ${{ secrets.ACA_WEB_APP_NAME }}
           resourceGroup: ${{ secrets.ACA_RESOURCE_GROUP }}
           imageToDeploy: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          registryUrl: ${{ env.IMAGE_REGISTRY }}
+          registryUrl: ghcr.io
           registryUsername: ${{ github.repository_owner }}
           registryPassword: ${{ secrets.GHCR_PAT }}
 
@@ -67,6 +67,6 @@ jobs:
           containerAppName: ${{ secrets.ACA_CELERY_APP_NAME }}
           resourceGroup: ${{ secrets.ACA_RESOURCE_GROUP }}
           imageToDeploy: ${{ env.IMAGE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          registryUrl: ${{ env.IMAGE_REGISTRY }}
+          registryUrl: ghcr.io
           registryUsername: ${{ github.repository_owner }}
           registryPassword: ${{ secrets.GHCR_PAT }}
