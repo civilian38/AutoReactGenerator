@@ -26,8 +26,8 @@ ALLOWED_HOSTS = [
     "localhost",
     "autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net",
     "https://fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev",
+    'ar-web.delightfulisland-8239f9f6.koreacentral.azurecontainerapps.io',
 ]
-
 
 # Application definition
 
@@ -169,3 +169,10 @@ CSRF_TRUSTED_ORIGINS = [
 AUTH_USER_MODEL = 'authentication.ARUser'
 
 FIELD_ENCRYPTION_KEY = os.environ.get('FIELD_ENCRYPTION_KEY', '')
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Seoul'

@@ -1,0 +1,27 @@
+services:
+  web:
+    build: .
+    command: gunicorn AutoReactGenerator.wsgi:application --bind 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  celery:
+    build: .
+    command: celery -A AutoReactGenerator worker -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"

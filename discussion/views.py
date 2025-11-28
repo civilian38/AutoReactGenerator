@@ -1,4 +1,5 @@
 from django.db import transaction
+from drf_yasg import openapi
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -6,12 +7,10 @@ from rest_framework.response import Response
 from rest_framework import status
 from AutoReactGenerator.permissions import IsOwnerOrReadOnly, SubClassIsOwnerOrReadOnly
 from drf_yasg.utils import swagger_auto_schema, no_body
-from google import genai
 
-from .models import *
 from .serializers import *
-from .LLMService import generate_response, summarize_chats
 from .permissions import DiscussionChatIsOwnerOrReadOnly
+from .tasks import get_chat_response_and_save, summarize_chat_and_save
 
 class DiscussionLCView(ListCreateAPIView):
     permission_classes = [IsOwnerOrReadOnly]
@@ -55,12 +54,20 @@ class ChatAPIView(APIView):
     @swagger_auto_schema(
         request_body=DiscussionChatSerializer,
         responses={
-            200: DiscussionChatLLMSerializer,
+            202: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'task_id': openapi.Schema(
+                        type=openapi.TYPE_NUMBER,
+                        description='생성된 비동기 작업의 ID'
+                    ),
+                }
+            ),
             400: 'Bad Request',
             404: 'Not Found'
         }
     )
-    def post(self, request, discussion_id, format=None):
+    def post(self, request, discussion_id):
         try:
             discussion_object = Discussion.objects.get(id=discussion_id)
         except Discussion.DoesNotExist:
@@ -70,38 +77,32 @@ class ChatAPIView(APIView):
         serializer = DiscussionChatSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        response = generate_response(serializer.validated_data['content'], discussion_id, request.user.id)
-
-        if not isinstance(response, str):
-            return response
-
         serializer.save(discussion_under=discussion_object)
 
-        llm_response_data = {
-            'discussion_under': discussion_id,
-            'content': response,
-             'is_by_user': False
-        }
-        llm_response_serializer = DiscussionChatLLMSerializer(data=llm_response_data)
-        if not llm_response_serializer.is_valid():
-            return Response(llm_response_serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        llm_response_serializer.save()
-        return Response(llm_response_serializer.data)
+        task = get_chat_response_and_save.delay(serializer.validated_data['content'], discussion_id, request.user.id)
+        return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
 
 class ChatSummaryAPIView(APIView):
     permission_classes = [IsAuthenticated, SubClassIsOwnerOrReadOnly]
     pagination_class = None
 
-
     @swagger_auto_schema(
         request_body=no_body,
         responses={
-            200: DiscussionSerializer,
+            202: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'task_id': openapi.Schema(
+                        type=openapi.TYPE_NUMBER,
+                        description='생성된 비동기 작업의 ID'
+                    ),
+                }
+            ),
             400: 'Bad Request',
             404: 'Not Found'
         }
     )
-    def post(self, request, discussion_id, format=None):
+    def post(self, request, discussion_id):
         try:
             discussion_object = Discussion.objects.get(id=discussion_id)
         except Discussion.DoesNotExist:
@@ -112,24 +113,5 @@ class ChatSummaryAPIView(APIView):
         if not chats.exists():
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            with transaction.atomic():
-                summary_content = summarize_chats(discussion_id, request.user.id)
-                if not isinstance(summary_content, str):
-                    return summary_content
-
-                update_data = {'summary': summary_content}
-                serializer = DiscussionSummarySerializer(instance=discussion_object, data=update_data, partial=True)
-                serializer.is_valid(raise_exception=True)
-                serializer.save()
-                chats.delete()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response(
-            {
-                    "type": "UnexpectedError",
-                    "message": str(e)
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+        task = summarize_chat_and_save.delay(discussion_object.id, request.user.id)
+        return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
