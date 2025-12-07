@@ -21,7 +21,7 @@ class FolderLCView(APIView):
                 404: 'Not Found'
             }
     )
-    def get(self, request, project_id, format=None):
+    def get(self, request, project_id):
         project = get_object_or_404(Project, id=project_id)
         root_folder = Folder.objects.filter(project_under=project, parent_folder__isnull=True).first()
         
@@ -42,7 +42,7 @@ class FolderLCView(APIView):
                 404: 'Not Found'
             }
     )
-    def post(self, request, project_id, format=None):
+    def post(self, request, project_id):
         project_object = get_object_or_404(Project, id=project_id)
         self.check_object_permissions(request, project_object)
 
