@@ -1,8 +1,9 @@
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 
+from AutoReactGenerator.permissions import IsOwner
 from .models import Project
-from .serializers import ProjectLCSerializer
+from .serializers import ProjectLCSerializer, ProjectRetrieveSerializer
 from frontFile.models import Folder
 
 class ProjectLCAPIView(ListCreateAPIView):
@@ -22,3 +23,8 @@ class ProjectLCAPIView(ListCreateAPIView):
             parent_folder=None,
             name=instance.name
         )
+
+class ProjectRetrieveAPIView(RetrieveAPIView):
+    serializer_class = ProjectRetrieveSerializer
+    permission_classes = [IsOwner, ]
+    queryset = Project.objects.all()
