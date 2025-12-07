@@ -7,6 +7,7 @@ class Discussion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     project_under = models.ForeignKey(Project, on_delete=models.CASCADE)
+    is_occupied = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.project_under.name} - {self.title}'

@@ -8,7 +8,7 @@ class DiscussionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discussion
         fields = '__all__'
-        read_only_fields = ('summary', )
+        read_only_fields = ('summary', 'is_occupied')
 
 class DiscussionSummarySerializer(serializers.ModelSerializer):
     project_under = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -20,7 +20,7 @@ class DiscussionSummarySerializer(serializers.ModelSerializer):
 class DiscussionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discussion
-        fields = ('id', 'title', 'updated_at')
+        fields = ('id', 'title', 'updated_at', 'is_occupied')
 
 class DiscussionChatSerializer(serializers.ModelSerializer):
     discussion_under = serializers.PrimaryKeyRelatedField(read_only=True)

@@ -1,6 +1,6 @@
 from django.db import transaction
 from drf_yasg import openapi
-from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -68,18 +68,24 @@ class ChatAPIView(APIView):
         }
     )
     def post(self, request, discussion_id):
-        try:
-            discussion_object = Discussion.objects.get(id=discussion_id)
-        except Discussion.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+        discussion_object = get_object_or_404(Discussion, id=discussion_id)
         self.check_object_permissions(request, discussion_object)
+
+        if discussion_object.is_occupied:
+            return Response(status=status.HTTP_409_CONFLICT)
 
         serializer = DiscussionChatSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        serializer.save(discussion_under=discussion_object)
+        instance = serializer.save(discussion_under=discussion_object)
+        discussion_object.is_occupied = True
+        discussion_object.save()
 
-        task = get_chat_response_and_save.delay(serializer.validated_data['content'], discussion_id, request.user.id)
+        task = get_chat_response_and_save.delay(
+            serializer.validated_data['content'],
+            discussion_id,
+            request.user.id,
+            instance.id)
         return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
 
 class ChatSummaryAPIView(APIView):

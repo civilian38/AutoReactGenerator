@@ -24,6 +24,6 @@ class DiscussionInline(admin.TabularInline):
 
 @admin.register(Project)
 class ProjectAdmin(admin.ModelAdmin):
-    fields = ('id', 'name', 'description', 'created_by', 'created_at')
+    fields = ('id', 'name', 'description', 'base_url', 'created_by', 'created_at')
     readonly_fields = ('id', 'created_at')
     inlines = [FileInline, PageInline, DocInline, DiscussionInline]

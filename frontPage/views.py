@@ -20,7 +20,7 @@ class FrontPageLCView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         project = Project.objects.get(id=self.kwargs.get('project_id'))
-        serializer.save(project_under=project, is_implemented=True)
+        serializer.save(project_under=project, is_implemented=False)
 
 class FrontPageRUDView(RetrieveUpdateDestroyAPIView):
     permission_classes = [SubClassIsOwnerOrReadOnly]

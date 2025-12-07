@@ -8,11 +8,9 @@ class Folder(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return f'({self.project_under}) {self.get_full_path()}'
+        return f'{self.get_full_path()}'
 
     def get_full_path(self):
-        if self.parent_folder:
-            return f"{self.parent_folder.get_full_path()}/{self.name}"
         return f"{self.name}"
     
     def is_root(self):
