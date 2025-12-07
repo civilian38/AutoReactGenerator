@@ -27,4 +27,8 @@ class GeminiKeySerializer(serializers.ModelSerializer):
     class Meta:
         model = ARUser
         fields = ('gemini_key_encrypted',)
-        
+
+class ARUserInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ARUser
+        fields = ('username', 'email', 'nickname', 'bio')

@@ -5,7 +5,7 @@ class Project(models.Model):
     name = models.CharField(max_length=50)
     base_url = models.URLField(max_length=200)
     description = models.TextField(null=True, blank=True)
-    created_by = models.ForeignKey(ARUser, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(ARUser, on_delete=models.CASCADE, related_name='created_by')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
