@@ -2,13 +2,16 @@ from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 
 from AutoReactGenerator.permissions import IsOwner
-from .models import Project
-from .serializers import ProjectLCSerializer, ProjectRetrieveSerializer
+from .serializers import *
 from frontFile.models import Folder
 
 class ProjectLCAPIView(ListCreateAPIView):
-    serializer_class = ProjectLCSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return ProjectListSerializer
+        return ProjectCreateSerializer
 
     def get_queryset(self):
         user = self.request.user
