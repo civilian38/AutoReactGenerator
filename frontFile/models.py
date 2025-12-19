@@ -29,3 +29,33 @@ class ProjectFile(models.Model):
     
     def get_file_path(self):
         return f'{self.folder}/{self.name}'
+
+class DraftFile(models.Model):
+    class DraftType(models.TextChoices):
+        CREATE = 'CREATE', '새 파일 생성'
+        UPDATE = 'UPDATE', '수정'
+        DELETE = 'DELETE', '삭제'
+
+    project_under = models.ForeignKey(Project, on_delete=models.CASCADE)
+    draft_content = models.TextField(null=True, blank=True)
+    draft_type = models.CharField(max_length=10, choices=DraftType.choices, default=DraftType.UPDATE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    # UPDATE시 사용
+    target_file = models.OneToOneField(ProjectFile, null=True, blank=True, related_name='draft', on_delete=models.CASCADE)
+
+    # CREATE시 사용
+    folder = models.ForeignKey(Folder, on_delete=models.CASCADE)
+    file_name =  models.CharField(max_length=255)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['project_under', 'folder', 'file_name'],
+                condition=models.Q(target_file__isnull=True),
+                name='unique_draft_creation_per_location'
+            )
+        ]
+
+    def __str__(self):
+        return f"[{self.draft_type}] {self.target_file.name if self.target_file else self.file_name}"
