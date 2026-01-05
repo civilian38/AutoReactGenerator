@@ -1,5 +1,4 @@
 from rest_framework import serializers
-
 from .models import *
 
 class FolderCreateSerializer(serializers.ModelSerializer):
@@ -52,6 +51,7 @@ class ProjectFileCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectFile
         fields = '__all__'
+        read_only_fields = ['draft_content', 'created_at', 'updated_at']
     
     def validate(self, data):
         project_object = data.get('project_under')
@@ -71,6 +71,7 @@ class ProjectFileUpdateDeleteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectFile
         fields = '__all__'
+        read_only_fields = ['draft_content', 'project_under', 'created_at', 'updated_at']
     
     def validate(self, data):
         project_object = self.instance.project_under
@@ -80,23 +81,28 @@ class ProjectFileUpdateDeleteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Folder Belongs to Wrong Project")
         
         instance = self.instance
-        queryset = ProjectFile.objects.filter(folder=folder_object, name=data.get('name', self.instance.name))
-        if queryset.exclude(pk=instance.pk).exists():
-            raise serializers.ValidationError("There is Already File of Same Name")
+        if 'name' in data:
+            queryset = ProjectFile.objects.filter(folder=folder_object, name=data['name'])
+            if queryset.exclude(pk=instance.pk).exists():
+                raise serializers.ValidationError("There is Already File of Same Name")
 
         return data 
 
 class ProjectFileRetrieveSerializer(serializers.ModelSerializer):
     file_path = serializers.CharField(source='get_file_path', read_only=True)
+    has_draft = serializers.BooleanField(source='has_draft_content', read_only=True)
+
     class Meta:
         model = ProjectFile
-        fields = ['id', 'project_under', 'folder', 'name', 'content', 'created_at', 'updated_at', 'file_path']
+        fields = ['id', 'project_under', 'folder', 'name', 'content', 'draft_content', 'has_draft', 'created_at', 'updated_at', 'file_path']
         read_only_fields = fields   
 
 class ProjectFileListSerializer(serializers.ModelSerializer):
+    has_draft = serializers.BooleanField(source='has_draft_content', read_only=True)
+
     class Meta:
         model = ProjectFile
-        fields = ('id', 'name')
+        fields = ('id', 'name', 'has_draft')
 
 class FolderStructureSerializer(serializers.ModelSerializer):
     subfolders = serializers.SerializerMethodField()

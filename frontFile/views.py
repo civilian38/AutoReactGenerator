@@ -82,3 +82,32 @@ class ProjectFileRUDView(RetrieveUpdateDestroyAPIView):
         if self.request.method == 'GET':
             return ProjectFileRetrieveSerializer
         return ProjectFileUpdateDeleteSerializer
+
+class ProjectFileApplyDraftView(APIView):
+    permission_classes = [SubClassIsOwnerOrReadOnly]
+
+    @swagger_auto_schema(
+        request_body=no_body,
+        responses={
+            200: ProjectFileRetrieveSerializer,
+            400: 'No Draft Content to Apply',
+            404: 'Not Found'
+        }
+    )
+    def post(self, request, pk):
+        file_obj = get_object_or_404(ProjectFile, pk=pk)
+        
+        self.check_object_permissions(request, file_obj)
+
+        if not file_obj.draft_content:
+            return Response(
+                {"detail": "This file does not have any draft content to apply."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        file_obj.content = file_obj.draft_content
+        file_obj.draft_content = "" 
+        file_obj.save()
+
+        serializer = ProjectFileRetrieveSerializer(file_obj)
+        return Response(serializer.data, status=status.HTTP_200_OK)
