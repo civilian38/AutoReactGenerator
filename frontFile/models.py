@@ -21,6 +21,7 @@ class ProjectFile(models.Model):
     folder = models.ForeignKey(Folder, related_name='files', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     content = models.TextField(null=True, blank=True)
+    draft_content = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -29,3 +30,6 @@ class ProjectFile(models.Model):
     
     def get_file_path(self):
         return f'{self.folder}/{self.name}'
+    
+    def has_draft_content(self):
+        return bool(self.draft_content)
