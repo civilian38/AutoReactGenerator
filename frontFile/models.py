@@ -8,7 +8,7 @@ class Folder(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return f'{self.get_full_path()}'
+        return f'[{self.id}] {self.get_full_path()}'
 
     def get_full_path(self):
         return f"{self.name}"
@@ -26,7 +26,7 @@ class ProjectFile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'({self.project_under}) {self.folder}/{self.name}'
+        return f'[{self.id}] ({self.project_under}) {self.folder}/{self.name}'
     
     def get_file_path(self):
         return f'{self.folder}/{self.name}'

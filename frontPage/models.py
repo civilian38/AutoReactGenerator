@@ -8,4 +8,4 @@ class FrontPage(models.Model):
     is_implemented = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.project_under.name} - {self.url}'
+        return f'[{self.id}] {self.project_under.name} - {self.url}'
