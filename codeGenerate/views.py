@@ -3,6 +3,7 @@ from django.db.models import F, Q
 from django.db import transaction
 
 from rest_framework.generics import ListCreateAPIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,6 +13,7 @@ from AutoReactGenerator.permissions import SubClassIsOwnerOrReadOnly
 from .models import GenerationSession
 from .serializers import *
 from .paginations import *
+from .LLMService import prompt_test
 
 class GenerationSessionLCView(ListCreateAPIView):
     permission_classes = [SubClassIsOwnerOrReadOnly, ]
@@ -78,5 +80,40 @@ class SessionStatusDiscardedView(APIView):
                 "message": "Session completed and draft contents discarded.", 
                 "updated_files_count": draft_count
             }, 
+            status=status.HTTP_200_OK
+        )
+
+class SessionChatView(APIView):
+    permission_classes = [IsAuthenticated, SubClassIsOwnerOrReadOnly]
+    pagination_class = None
+"""
+    def post(self, request, session_id):
+        session_object = get_object_or_404(GenerationSession, pk=session_id)
+        self.check_object_permissions(request, session_object)
+
+        if session_object.is_occupied:
+            return Response({"detail": "session occupied"}, status=status.HTTP_409_CONFLICT,)
+        elif session_object.status != "ACTIVE":
+            return Response({"detail": "session not active"}, status=status.HTTP_409_CONFLICT)
+
+        serializer = SessionChatUserInputSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        instance = serializer.save(session_under=session_object)
+
+        session_object.is_occupied = True
+        session_object.save()
+"""
+
+class PromptTestView(APIView):
+    permission_classes = [AllowAny,]
+    pagination_class = None
+
+    def get(self, request, session_id):
+        session_object = get_object_or_404(GenerationSession, pk=session_id)
+        self.check_object_permissions(request, session_object)
+
+        return Response(
+            {"data": prompt_test(session_id)},
             status=status.HTTP_200_OK
         )

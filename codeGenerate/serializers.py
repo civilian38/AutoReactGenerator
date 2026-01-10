@@ -5,7 +5,7 @@ from .models import *
 class GenerationSessionListSerializer(serializers.ModelSerializer):
     class Meta:
         model = GenerationSession
-        fields = ['id', 'title', 'status', 'created_at']
+        fields = ['id', 'title', 'status', 'is_occupied', 'created_at']
         read_only_fields = fields
 
 class GenerationSessionCreateSerializer(serializers.ModelSerializer):
@@ -19,10 +19,11 @@ class GenerationSessionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GenerationSession
         fields = [
-            'project_under', 'title', 
+            'project_under', 'title', 'is_occupied',
             'related_apidocs', 'related_discussions', 
             'related_folders', 'related_files', 'related_pages'
         ]
+        read_only_fields = ('is_occupied',)
 
     def validate(self, attrs):
         view = self.context.get('view')
@@ -38,3 +39,17 @@ class GenerationSessionCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['status'] = 'ACTIVE'
         return super().create(validated_data)
+
+class SessionChatUserInputSerializer(serializers.ModelSerializer):
+    session_under = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = SessionChat
+        fields = '__all__'
+        read_only_fields = ('is_by_user', 'created_at')
+
+class SessionChatListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SessionChat
+        fields = ('content', 'created_at', 'is_by_user')
+        read_only_fields = fields
