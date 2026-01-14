@@ -26,4 +26,16 @@ class APIDoc(models.Model):
 
     def __str__(self):
         return f'{self.project_under} - ({self.http_method}){self.url}'
+    
+    def get_prompt_text(self):
+        text = f"URL: {self.url}\n"
+        text += f"요청 종류: {self.http_method}\n"
+        text += f"요청에 대한 설명: {self.description}\n"
+        if self.request_format:
+            text += f"Request Sample:\n{self.request_format}\n"
+        if self.response_format:
+            text += f"Response Sample:\n{self.response_format}\n"
+        text += "=" * 10
+
+        return text
 

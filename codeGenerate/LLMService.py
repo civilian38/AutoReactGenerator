@@ -21,25 +21,30 @@ def prompt_test(session_id):
     # apidocs
     if context_data.get('apidocs'):
         request_text += "====API DOCS====\n"
+        request_text += apidoc_init_message + "\n"
         for apidoc in context_data.get('apidocs'):
-            request_text += str(apidoc) + "\n"
+            request_text += apidoc.get_prompt_text() + "\n"
+    request_text += "\n"*2
 
     # discussions
     if context_data.get('discussions'):
         request_text += "====Discussions====\n"
+        request_text += discussion_init_message + "\n"
         for discussion in context_data.get('discussions'):
-            request_text += str(discussion) + "\n"
+            request_text += discussion.get_prompt_text() + "\n"
 
     # files
     if context_data.get('files'):
         request_text += "====Files====\n"
+        request_text += file_init_message + "\n"
         for file in context_data.get('files'):
-            request_text += str(file) + "\n"
+            request_text += file.get_prompt_text() + "\n"
 
     # pages
     if context_data.get('pages'):
         request_text += "====Pages====\n"
+        request_text += page_init_message + "\n"
         for page in context_data.get('pages'):
-            request_text += str(page) + "\n"
+            request_text += page.get_prompt_text() + "\n"
 
     return request_text

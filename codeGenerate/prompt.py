@@ -1,1 +1,5 @@
 code_generate_init_message="너는 React 프로그래머야. 지금부터 다음 요청에 따라 기존 프로젝트 파일 중 일부를 수정하거나 새로운 파일을 만들며 요청사항을 만족하는 페이지를 만들어줘."
+apidoc_init_message=""
+discussion_init_message=""
+file_init_message=""
+page_init_message=""
