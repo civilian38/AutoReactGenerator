@@ -40,6 +40,7 @@ class DiscussionRUDView(RetrieveUpdateDestroyAPIView):
 class DiscussChatListView(ListAPIView):
     permission_classes = [DiscussionChatIsOwnerOrReadOnly]
     serializer_class = DiscussionChatSerializer
+    pagination_class = None
 
     def get_queryset(self):
         discussion_id = self.kwargs.get('discussion_id')
