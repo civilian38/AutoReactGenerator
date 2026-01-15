@@ -28,14 +28,14 @@ def prompt_test(session_id):
 
     # discussions
     if context_data.get('discussions'):
-        request_text += "====Discussions====\n"
+        request_text += "====Discussions(기획서)====\n"
         request_text += discussion_init_message + "\n"
         for discussion in context_data.get('discussions'):
             request_text += discussion.get_prompt_text() + "\n"
 
     # files
     if context_data.get('files'):
-        request_text += "====Files====\n"
+        request_text += "====(기존 파일)====\n"
         request_text += file_init_message + "\n"
         for file in context_data.get('files'):
             request_text += file.get_prompt_text() + "\n"
@@ -46,5 +46,8 @@ def prompt_test(session_id):
         request_text += page_init_message + "\n"
         for page in context_data.get('pages'):
             request_text += page.get_prompt_text() + "\n"
+    
+    request_text += "====Request====\n"
+    request_text += "위 정보를 종합하여 즉시 배포 가능한 수준의 코드를 작성하세요."
 
     return request_text
