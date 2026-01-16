@@ -12,4 +12,5 @@ apidoc_init_message="이 섹션의 API 명세를 분석하여 데이터 Fetching
 discussion_init_message="아래 기획서에 정의된 컴포넌트 구조, State 관리 전략, 사용자 인터랙션 흐름을 정확하게 코드로 구현하세요."
 file_init_message="프로젝트의 기존 코드 스타일과 구조를 파악하고, 필요한 경우 유틸리티 함수나 컴포넌트를 재사용하거나 수정하세요."
 page_init_message="위 모든 정보를 종합하여, 다음 URL에 해당하는 완성된 페이지 컴포넌트와 하위 컴포넌트 코드를 생성하세요."
+request_init_message="다음은 당신과 유저가 지금까지 해당 기능을 구현하기 위해 나눈 대화입니다. 다음의 대화에서 특히 유저의 요청을 참고하세요."
 code_generate_final_message="위 정보를 종합하여 즉시 배포 가능한 수준의 코드를 작성하세요. **코드를 모두 작성한 후에는, 반드시 [Protocol: Handover Context] 섹션에서 정의한 양식에 맞춰 인계 사항을 출력해야 합니다.**"

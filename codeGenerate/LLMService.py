@@ -54,7 +54,16 @@ def prompt_test(session_id):
         for page in context_data.get('pages'):
             request_text += page.get_prompt_text() + "\n"
     
+    # chats    
+    Chats = SessionChat.objects.filter(session_under=current_session)
+    if Chats.exists():
+        request_text += "=====Chats====="
+        request_text += request_init_message + "\n"
+        for chat in Chats:
+            request_text += f"({"USER" if chat.is_by_user else "AGENT"}) {chat.content}\n"
+
     request_text += "====Request====\n"
     request_text += code_generate_final_message
+    
 
     return request_text
