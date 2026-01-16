@@ -14,9 +14,16 @@ def prompt_test(session_id):
             'related_pages'
         ).get(id=session_id)
     context_data = current_session.get_related_objects()
+    session_project = current_session.project_under
 
     request_text = str()
     request_text += code_generate_init_message + "\n"
+
+    # handover context
+    request_text += "====Protocol: Handover Context====\n"
+    request_text += handover_context_init_message + "\n"
+    request_text += "현재까지 기록된 handover context는 다음과 같습니다.\n==========\n"
+    request_text += session_project.handover_context + "\n==========\n"
 
     # apidocs
     if context_data.get('apidocs'):
@@ -48,6 +55,6 @@ def prompt_test(session_id):
             request_text += page.get_prompt_text() + "\n"
     
     request_text += "====Request====\n"
-    request_text += "위 정보를 종합하여 즉시 배포 가능한 수준의 코드를 작성하세요."
+    request_text += code_generate_final_message
 
     return request_text
