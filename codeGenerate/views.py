@@ -28,10 +28,6 @@ class GenerationSessionLCView(ListCreateAPIView):
             return GenerationSessionCreateSerializer
         return GenerationSessionListSerializer
     
-    def perform_create(self, serializer):
-        project = Project.objects.get(id=self.kwargs.get('project_id'))
-        serializer.save(project_under=project)
-
 class SessionStatusCompletedView(APIView):
     def post(self, request, pk):
         session_object = get_object_or_404(GenerationSession, pk=pk)

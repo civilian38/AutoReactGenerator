@@ -28,12 +28,22 @@ class GenerationSessionCreateSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         view = self.context.get('view')
         project_id = view.kwargs.get('project_id')
+        try:
+            project_under = Project.objects.get(id=project_id)
+        except Project.DoesNotExist:
+            raise serializers.ValidationError("존재하지 않는 프로젝트입니다.")
         
-        if GenerationSession.objects.filter(project_under_id=project_id, status='ACTIVE').exists():
+        if GenerationSession.objects.filter(project_under=project_under, status='ACTIVE').exists():
             raise serializers.ValidationError(
                 "해당 프로젝트에 이미 진행 중인(ACTIVE) 세션이 존재합니다. 기존 세션을 완료하거나 폐기해주세요."
             )
         
+        if project_under.to_do_request:
+            raise serializers.ValidationError(
+                "요청 사항이 수락되지 않았습니다. 요청 사항을 수행한 뒤, 수락 버튼을 누르고 다시 시도하십시오."
+            )
+        
+        attrs['project_under'] = project_under
         return attrs
 
     def create(self, validated_data):
