@@ -13,7 +13,7 @@ from AutoReactGenerator.permissions import SubClassIsOwnerOrReadOnly
 from .models import GenerationSession
 from .serializers import *
 from .paginations import *
-from .LLMService import prompt_test
+from .LLMService import get_generation_prompt, request_code_generation
 
 class GenerationSessionLCView(ListCreateAPIView):
     permission_classes = [SubClassIsOwnerOrReadOnly, ]
@@ -114,6 +114,22 @@ class PromptTestView(APIView):
         self.check_object_permissions(request, session_object)
 
         return Response(
-            {"data": prompt_test(session_id)},
+            {"data": get_generation_prompt(session_id)},
             status=status.HTTP_200_OK
         )
+
+class GenerationTestView(APIView):
+    def get(self, request, session_id):
+        try:
+            user_id = request.user.id
+            generation_result = request_code_generation(session_id, user_id)
+
+            response_data = generation_result.model_dump(mode='json')
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": str(e), "type": type(e).__name__}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

@@ -19,7 +19,7 @@ class GenerationSessionCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = GenerationSession
         fields = [
-            'project_under', 'title', 'is_occupied',
+            'id', 'project_under', 'title', 'is_occupied',
             'related_apidocs', 'related_discussions', 
             'related_folders', 'related_files', 'related_pages'
         ]

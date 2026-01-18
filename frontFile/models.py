@@ -35,7 +35,7 @@ class ProjectFile(models.Model):
         return bool(self.draft_content)
     
     def get_prompt_text(self):
-        text = "=" * 5 + self.get_file_path() + "=" * 5 + "\n"
+        text = "=" * 5 + f"{self.get_file_path()} | File ID: {self.id}" + "=" * 5 + "\n"
         if self.draft_content:
             text += self.draft_content + "\n"
         else:

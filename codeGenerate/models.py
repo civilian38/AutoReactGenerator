@@ -41,6 +41,11 @@ class GenerationSession(models.Model):
             'pages': self.related_pages.all(),
         }
 
+    def get_related_files(self):
+        return {
+            'files': self.related_files.all()
+        }
+
 class SessionChat(models.Model):
     session_under = models.ForeignKey(GenerationSession, on_delete=models.CASCADE)
     content = models.TextField()
