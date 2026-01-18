@@ -1,0 +1,3 @@
+# 구현 필요 사항
+- project description 수정 기능
+- draft content 거절 기능

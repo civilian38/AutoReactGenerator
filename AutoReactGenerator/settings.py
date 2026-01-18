@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "frontFile",
     "frontPage",
     "discussion",
+    "codeGenerate",
     "encrypted_model_fields",
 ]
 

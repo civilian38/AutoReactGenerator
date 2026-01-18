@@ -8,10 +8,10 @@ class Folder(models.Model):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return f'{self.get_full_path()}'
+        return f'[{self.id}] {self.get_full_path()}'
 
     def get_full_path(self):
-        return f"{self.name}"
+        return f"{self.parent_folder.get_full_path()}/{self.name}" if self.parent_folder else self.name
     
     def is_root(self):
         return self.parent_folder is None
@@ -26,10 +26,21 @@ class ProjectFile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'({self.project_under}) {self.folder}/{self.name}'
+        return f'[{self.id}] ({self.project_under}) {self.folder}/{self.name}'
     
     def get_file_path(self):
-        return f'{self.folder}/{self.name}'
+        return f'{self.folder.get_full_path()}/{self.name}'
     
     def has_draft_content(self):
         return bool(self.draft_content)
+    
+    def get_prompt_text(self):
+        text = "=" * 5 + self.get_file_path() + "=" * 5 + "\n"
+        if self.draft_content:
+            text += self.draft_content + "\n"
+        else:
+            text += self.content + "\n"
+        text += "=" * 10 + "\n"
+
+        return text
+

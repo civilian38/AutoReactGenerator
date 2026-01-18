@@ -12,6 +12,13 @@ class Discussion(models.Model):
     def __str__(self):
         return f'{self.project_under.name} - {self.title}'
 
+    def get_prompt_text(self):
+        text = f"===== {self.title} =====\n"
+        text += self.summary + "\n"
+        text += "=" * 10 + "\n"
+
+        return text
+
 class DiscussionChat(models.Model):
     discussion_under = models.ForeignKey(Discussion, on_delete=models.CASCADE)
     content = models.TextField()

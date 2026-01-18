@@ -31,6 +31,7 @@ urlpatterns = [
     path('api/frontfiles/', include('frontFile.urls')),
     path('api/frontpages/', include('frontPage.urls')),
     path('api/discussion/', include('discussion.urls')),
+    path('api/generation/', include('codeGenerate.urls')),
 
     #swagger : Need to be handled after production
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
