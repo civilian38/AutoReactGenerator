@@ -1,7 +1,7 @@
 from google import genai
 from pydantic import BaseModel, Field, create_model, AfterValidator, PlainSerializer
 from enum import IntEnum
-from typing import List, Annotated
+from typing import List, Annotated, Optional
 
 from authentication.models import ARUser
 from .models import GenerationSession, SessionChat
@@ -31,7 +31,8 @@ def get_response_format_model(files_ids: List[int]):
         files_to_modify=(List[FileToModify], Field(description="수정해야 할 파일들의 리스트")),
         files_to_create=(List[FileToCreate], Field(description="새롭게 추가할 파일들의 리스트")),
         response_text=(str, Field(description="요청자에게 전달할 구현 사항에 대한 설명")),
-        handover_context=(str, Field(description="새롭게 작성할 handover context. 반드시 명시된 형식에 맞추어 작성할 것."))
+        handover_context=(str, Field(description="새롭게 작성할 handover context. 반드시 명시된 형식에 맞추어 작성할 것.")),
+        to_do_request=(Optional[str], Field(default=None, description="새로운 패키지 설치, 환경변수 추가 등 코드 수정에 앞서 사용자가 필수적으로 취해야 할 행동"))
     )
     return ResponseFormat
 
@@ -110,13 +111,23 @@ def request_code_generation(session_id, user_id):
 
     ResponseFormat = get_response_format_model(related_files_ids)
     response = client.models.generate_content(
-        model="gemini-3-pro-preview",
+        model="gemini-2.5-pro",
         contents=get_generation_prompt(session_id),
         config={
             "response_mime_type": "application/json",
             "response_json_schema": ResponseFormat.model_json_schema()
         }
     )
+
+    if not response.text:
+        print("!!! 응답 생성 실패 !!!")
+        try:
+            print(f"Finish Reason: {response.candidates[0].finish_reason}")
+            print(f"Safety Ratings: {response.candidates[0].safety_ratings}")
+        except:
+            print(f"Response Dump: {response}")
+        
+        raise ValueError("Gemini API returned an empty response. (Likely blocked by safety filters)")
 
     generation_result = ResponseFormat.model_validate_json(response.text)
     return generation_result
