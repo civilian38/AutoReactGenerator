@@ -15,6 +15,7 @@ from .serializers import *
 from .paginations import *
 from .LLMService import get_generation_prompt, request_code_generation
 from .tasks import request_generate_and_apply
+from .helper import _cleanup_empty_folders
 
 class GenerationSessionLCView(ListCreateAPIView):
     permission_classes = [SubClassIsOwnerOrReadOnly, ]
@@ -33,6 +34,9 @@ class SessionStatusCompletedView(APIView):
     def post(self, request, pk):
         session_object = get_object_or_404(GenerationSession, pk=pk)
         self.check_object_permissions(request, session_object)
+        
+        if session_object.project_under.to_do_request:
+            return Response({"detail": "to do reqeust not accepted"}, status=status.HTTP_409_CONFLICT,)
 
         with transaction.atomic():
             target_files = session_object.related_files.exclude(
@@ -41,8 +45,10 @@ class SessionStatusCompletedView(APIView):
 
             updated_count = target_files.update(
                 content=F('draft_content'),
-                draft_content=None  
+                draft_content=None
             )
+
+            session_object.related_pages.all().update(is_implemented=True)
 
             session_object.status = "COMPLETED"
             session_object.save()
@@ -61,22 +67,36 @@ class SessionStatusDiscardedView(APIView):
         self.check_object_permissions(request, session_object)
 
         with transaction.atomic():
-            target_files = session_object.related_files.exclude(
+            # delete newly created files and folders
+            files_to_delete = session_object.related_files.filter(
+                Q(content__isnull=True) | Q(content='')
+            )
+            candidate_folder_ids = set(files_to_delete.values_list('folder_id', flat=True))
+            deleted_file_count, _ = files_to_delete.delete()
+            deleted_folder_count = _cleanup_empty_folders(candidate_folder_ids)
+            
+            # discard update from existing files
+            files_to_revert = session_object.related_files.exclude(
                 Q(draft_content__isnull=True) | Q(draft_content='')
             )
+            updated_file_count = files_to_revert.update(draft_content=None)
 
-            draft_count = target_files.update(
-                draft_content=None  
-            )
+            # delete to do reqeust
+            project_under = session_object.project_under
+            project_under.to_do_request = None
+            project_under.save()
 
+            # update session status
             session_object.status = "DISCARDED"
             session_object.save()
 
         return Response(
             {
-                "message": "Session completed and draft contents discarded.", 
-                "updated_files_count": draft_count
-            }, 
+                "message": "Session discarded successfully.",
+                "deleted_files_count": deleted_file_count,
+                "deleted_folders_count": deleted_folder_count,
+                "reverted_files_count": updated_file_count
+            },
             status=status.HTTP_200_OK
         )
 
@@ -89,6 +109,8 @@ class SessionChatView(APIView):
 
         if session_object.is_occupied:
             return Response({"detail": "session occupied"}, status=status.HTTP_409_CONFLICT,)
+        elif session_object.project_under.to_do_request:
+            return Response({"detail": "to do reqeust not accepted"}, status=status.HTTP_409_CONFLICT,)
         elif session_object.status != "ACTIVE":
             return Response({"detail": "session not active"}, status=status.HTTP_409_CONFLICT)
 
@@ -97,14 +119,13 @@ class SessionChatView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         instance = serializer.save(session_under=session_object)
 
-        session_object.is_occupied = True
-        session_object.save()
-
         task = request_generate_and_apply.delay(
             session_id,
             request.user.id,
             instance.id
         )
+        session_object.is_occupied = True
+        session_object.save()
         return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
 
 class PromptTestView(APIView):

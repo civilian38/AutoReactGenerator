@@ -20,24 +20,32 @@ def request_generate_and_apply(self, session_id, user_id, last_chat_id):
             parent_folder__isnull=True    
         ).first()
 
+        related_files_to_add = set()
+        related_folders_to_add = set()
+
         with transaction.atomic():
             # modify existing files
             for modification_data in response_result.files_to_modify:
                 target_file = ProjectFile.objects.get(id=modification_data.file_id)
                 target_file.draft_content = modification_data.modify_content
                 target_file.save()
+
+                related_files_to_add.add(target_file)
             
             # create new files
             for creation_data in response_result.files_to_create:
                 folder_under = file_root_folder.get_or_create_by_path(creation_data.filepath)
-                ProjectFile.objects.create(
+                related_folders_to_add.add(folder_under)
+                
+                new_file = ProjectFile.objects.create(
                     project_under=project,
                     folder=folder_under,
                     name=creation_data.filename,
                     content=None,
                     draft_content=creation_data.content
                 )
-            
+                related_files_to_add.add(new_file)
+                
             # update handover context
             project.handover_context = response_result.handover_context
 
@@ -53,9 +61,12 @@ def request_generate_and_apply(self, session_id, user_id, last_chat_id):
                 is_by_user=False
             )
 
-            # unoccupy
-            session.is_occupied = False
-            session.save()
+            # add related files and folders
+            if related_files_to_add:
+                session.related_files.add(*related_files_to_add)
+            
+            if related_folders_to_add:
+                session.related_folders.add(*related_folders_to_add)
 
             return "SUCCESS"
                 
