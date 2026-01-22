@@ -10,7 +10,7 @@ from .prompt import *
 
 class FileToCreate(BaseModel):
     filename: str = Field(description="새로운 파일의 파일 명. 확장자까지 명시할 것.")
-    filepath: str = Field(description="새로운 파일이 위치할 폴더의 이름. 기존 프로젝트에서 확인할 수 있는 루트폴더로부터 '/'로 하위 폴더를 구분하여 full path를 작성하되, 자체는 작성하지 말것.")
+    filepath: str = Field(description="새로운 파일이 위치할 폴더의 이름. 기존 프로젝트에서 확인할 수 있는 루트폴더로부터 '/'로 하위 폴더를 구분하여 full path를 작성하되, 파일 자체는 작성하지 말것.")
     content: str = Field(description="새로운 파일의 완성된 전체 코드")
 
 def get_response_format_model(files_ids: List[int]):

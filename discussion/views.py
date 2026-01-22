@@ -85,7 +85,8 @@ class ChatAPIView(APIView):
             serializer.validated_data['content'],
             discussion_id,
             request.user.id,
-            instance.id)
+            instance.id
+        )
         return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
 
 class ChatSummaryAPIView(APIView):

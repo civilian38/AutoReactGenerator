@@ -15,6 +15,20 @@ class Folder(models.Model):
     
     def is_root(self):
         return self.parent_folder is None
+    
+    def get_or_create_by_path(self, path_str):
+        path_parts = [p for p in path_str.strip('/').split('/') if p]
+        if self.is_root() and path_parts[0] == self.name:
+            path_parts.pop(0)
+        
+        current_folder = self
+        for part_name in path_parts:
+            current_folder, _ = current_folder.subfolders.get_or_create(
+                name=part_name,
+                defaults={'project_under': self.project_under}
+            )
+        
+        return current_folder
 
 class ProjectFile(models.Model):
     project_under = models.ForeignKey(Project, on_delete=models.CASCADE)

@@ -14,6 +14,7 @@ from .models import GenerationSession
 from .serializers import *
 from .paginations import *
 from .LLMService import get_generation_prompt, request_code_generation
+from .tasks import request_generate_and_apply
 
 class GenerationSessionLCView(ListCreateAPIView):
     permission_classes = [SubClassIsOwnerOrReadOnly, ]
@@ -82,7 +83,6 @@ class SessionStatusDiscardedView(APIView):
 class SessionChatView(APIView):
     permission_classes = [IsAuthenticated, SubClassIsOwnerOrReadOnly]
     pagination_class = None
-"""
     def post(self, request, session_id):
         session_object = get_object_or_404(GenerationSession, pk=session_id)
         self.check_object_permissions(request, session_object)
@@ -99,7 +99,13 @@ class SessionChatView(APIView):
 
         session_object.is_occupied = True
         session_object.save()
-"""
+
+        task = request_generate_and_apply.delay(
+            session_id,
+            request.user.id,
+            instance.id
+        )
+        return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
 
 class PromptTestView(APIView):
     permission_classes = [AllowAny,]
