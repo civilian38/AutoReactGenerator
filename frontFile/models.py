@@ -16,6 +16,21 @@ class Folder(models.Model):
     def is_root(self):
         return self.parent_folder is None
     
+    def get_tree_structure(self, parent_structure=""):
+        return_text = str()
+        if self.is_root():
+            return_text += "[{폴더 ID}] {폴더 경로}\n\n"
+            
+        if parent_structure:
+            current_path = f"{parent_structure}/{self.name}"
+        else:
+            current_path = self.name
+        
+        return_text += f"[{self.id}] {current_path}\n"
+        for subfolder in self.subfolders.all():
+            return_text += subfolder.get_tree_structure(current_path)
+        return return_text
+    
     def get_or_create_by_path(self, path_str):
         path_parts = [p for p in path_str.strip('/').split('/') if p]
         if self.is_root() and path_parts[0] == self.name:

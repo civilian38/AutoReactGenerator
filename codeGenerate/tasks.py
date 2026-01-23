@@ -1,5 +1,5 @@
 from .models import GenerationSession, SessionChat
-from .LLMService import request_code_generation
+from .LLMService import request_code_generation, request_folder_generation
 
 from frontFile.models import ProjectFile, Folder
 

@@ -4,14 +4,42 @@ from enum import IntEnum
 from typing import List, Annotated, Optional
 
 from authentication.models import ARUser
+from frontFile.models import Folder
 from .models import GenerationSession, SessionChat
 from .prompt import *
+from .helper import get_root_folder_with_prefetch_related
+
+class FolderToCreate(BaseModel):
+    filepath: str = Field(description="생성할 폴더의 전체 경로 문자열. (예시: '[project_name]/src/components/buttons'). 주의: './'나 '/'로 시작하지 말고, '[project_name]'와 같은 최상위 폴더부터 작성할 것.")
 
 
 class FileToCreate(BaseModel):
     filename: str = Field(description="새로운 파일의 파일 명. 확장자까지 명시할 것.")
     filepath: str = Field(description="새로운 파일이 위치할 폴더의 이름. 기존 프로젝트에서 확인할 수 있는 루트폴더로부터 '/'로 하위 폴더를 구분하여 full path를 작성하되, 파일 자체는 작성하지 말것.")
     content: str = Field(description="새로운 파일의 완성된 전체 코드")
+
+def get_folder_to_create_list_model(project_name: str):
+    FolderToCreate = create_model(
+        'FolderToCreate',
+        folderpath=(str, Field(
+            description=(
+                f"생성할 폴더의 전체 경로. "
+                f"주의: './'나 '/'로 시작하지 말고, '{project_name}'와 같은 최상위 루트 폴더명부터 시작하여 전체 경로를 기입할 것. "
+                f"(예시: '{project_name}/src/components/buttons')"
+            )
+        ))
+    )
+
+    ListFormat = create_model(
+        'ListFormat',
+        is_folder_creation_required=(bool, Field(
+            description="새로 생성해야 할 폴더가 하나라도 존재하면 True, 기존 구조로 충분하면 False."
+        )),
+        folders_to_create=(List[FolderToCreate], Field(
+            description="생성해야 할 폴더 객체들의 목록. 생성할 폴더가 없다면 빈 리스트를 반환."
+        ))
+    )
+    return ListFormat
 
 def get_response_format_model(files_ids: List[int]):
     FileIdEnum = IntEnum('FileIdEnum', {f'ID_{item}': item for item in files_ids})
@@ -36,6 +64,72 @@ def get_response_format_model(files_ids: List[int]):
     )
     return ResponseFormat
 
+def get_folder_generation_prompt(session_id) -> str:
+    """
+    generation 1단계: 폴더 생성을 위한 프롬프트 작성
+    
+    :param session_id: 요청이 들어온 session의 id
+    """
+    current_session = GenerationSession.objects.prefetch_related(
+            'related_apidocs',
+            'related_discussions',
+            'related_folders',
+            'related_files',
+            'related_pages'
+        ).get(id=session_id)
+    context_data = current_session.get_related_objects()
+    session_project = current_session.project_under
+
+    request_text = str()
+    request_text += folder_generate_init_message + "\n"
+
+    # handovercontext
+    request_text += "====Handover Context====\n"
+    request_text += folder_handover_context_init_message + "\n"
+    request_text += session_project.handover_context + "\n"
+    request_text += "=" * 8 + "\n"
+
+    # folder structure
+    all_folders = Folder.objects.filter(project_under=session_project).select_related('parent_folder')
+    folder_dict = {folder.id: folder for folder in all_folders}
+    root_folder = get_root_folder_with_prefetch_related(all_folders, folder_dict)
+    
+    request_text += "====Folder Structure====\n"
+    request_text += folder_structure_init_message + "\n"
+    request_text += root_folder.get_tree_structure() + "\n"
+    request_text += "=" * 8 + "\n"
+
+    # files
+    if context_data.get('files'):
+        request_text += "====(기존 파일)====\n"
+        request_text += folder_file_init_message + "\n"
+        for file in context_data.get('files'):
+            request_text += "- " + file.name + "\n"
+
+    # discussions
+    if context_data.get('discussions'):
+        request_text += "====Discussions(기획서)====\n"
+        request_text += folder_discussion_init_message + "\n"
+        for discussion in context_data.get('discussions'):
+            request_text += discussion.get_prompt_text() + "\n"
+    
+    # pages
+    if context_data.get('pages'):
+        request_text += "====Pages====\n"
+        request_text += folder_page_init_message + "\n"
+        for page in context_data.get('pages'):
+            request_text += page.get_prompt_text() + "\n"
+
+    # chats    
+    Chats = SessionChat.objects.filter(session_under=current_session)
+    if Chats.exists():
+        request_text += "=====Chats====="
+        request_text += request_init_message + "\n"
+        for chat in Chats:
+            request_text += f"({"USER" if chat.is_by_user else "AGENT"}) {chat.content}\n"
+    
+    return request_text
+   
 def get_generation_prompt(session_id):
     current_session = GenerationSession.objects.prefetch_related(
             'related_apidocs',
@@ -98,7 +192,7 @@ def get_generation_prompt(session_id):
 
     return request_text
 
-def request_code_generation(session_id, user_id):
+def generation_request(session_id, user_id, model_type, prompt, response_format):
     user_obj = ARUser.objects.get(id=user_id)
     api_key = user_obj.gemini_key_encrypted
     client = genai.Client(api_key=api_key)
@@ -107,12 +201,11 @@ def request_code_generation(session_id, user_id):
             'related_files',
         ).get(id=session_id)
     context_data = current_session.get_related_files()
-    related_files_ids = [file.id for file in context_data.get('files')]
 
-    ResponseFormat = get_response_format_model(related_files_ids)
+    ResponseFormat = response_format
     response = client.models.generate_content(
-        model="gemini-2.5-pro",
-        contents=get_generation_prompt(session_id),
+        model=model_type,
+        contents=prompt,
         config={
             "response_mime_type": "application/json",
             "response_json_schema": ResponseFormat.model_json_schema()
@@ -131,3 +224,29 @@ def request_code_generation(session_id, user_id):
 
     generation_result = ResponseFormat.model_validate_json(response.text)
     return generation_result
+
+def request_folder_generation(session_id, user_id):
+    current_session =  GenerationSession.objects.get(id=session_id)
+    
+    return generation_request(
+        session_id, 
+        user_id, 
+        "gemini-2.5-flash",
+        get_folder_generation_prompt(session_id),
+        get_folder_to_create_list_model(current_session.project_under.name)
+    )
+
+def request_code_generation(session_id, user_id):
+    current_session =  GenerationSession.objects.prefetch_related(
+            'related_files',
+        ).get(id=session_id)
+    context_data = current_session.get_related_files()
+    related_files_ids = [file.id for file in context_data.get('files')]
+
+    return generation_request(
+        session_id, 
+        user_id, 
+        "gemini-2.5-pro",
+        get_generation_prompt(session_id),
+        get_response_format_model(related_files_ids)
+    )
