@@ -48,7 +48,7 @@ def request_folder_generation_task(self, session_id, user_id, last_chat_id):
         raise e
 
 @shared_task(bind=True)
-def request_generate_and_apply(self, session_id, user_id, last_chat_id):
+def request_file_generation_task(self, session_id, user_id, last_chat_id):
     try:
         response_result = request_code_generation(session_id, user_id)
         session = GenerationSession.objects.get(id=session_id)
@@ -65,20 +65,18 @@ def request_generate_and_apply(self, session_id, user_id, last_chat_id):
 
                 related_files_to_add.add(target_file)
 
-            """
             # create new files
             for creation_data in response_result.files_to_create:
-                folder_under = file_root_folder.get_or_create_by_path(creation_data.filepath)
-                
+                folder = Folder.objects.get(id=creation_data.folder_id)
                 new_file = ProjectFile.objects.create(
                     project_under=project,
-                    folder=folder_under,
+                    folder=folder,
                     name=creation_data.filename,
                     content=None,
                     draft_content=creation_data.content
                 )
                 related_files_to_add.add(new_file)
-                """
+
             # update handover context
             project.handover_context = response_result.handover_context
 

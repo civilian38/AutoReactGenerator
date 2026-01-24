@@ -260,10 +260,13 @@ def request_code_generation(session_id, user_id):
     context_data = current_session.get_related_files()
     related_files_ids = [file.id for file in context_data.get('files')]
 
+    folders = Folder.objects.filter(project_under=current_session.project_under)
+    related_folders_ids = [folder.id for folder in folders]
+
     return generation_request(
         session_id, 
         user_id, 
         "gemini-2.5-pro",
         get_generation_prompt(session_id),
-        get_response_format_model(related_files_ids)
+        get_response_format_model(related_files_ids, related_folders_ids)
     )

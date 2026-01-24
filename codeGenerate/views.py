@@ -13,8 +13,8 @@ from AutoReactGenerator.permissions import SubClassIsOwnerOrReadOnly
 from .models import GenerationSession
 from .serializers import *
 from .paginations import *
-from .LLMService import get_folder_generation_prompt, get_generation_prompt, request_code_generation, request_folder_generation
-from .tasks import request_generate_and_apply, request_folder_generation_task
+from .LLMService import get_folder_generation_prompt, get_generation_prompt, request_code_generation
+from .tasks import request_file_generation_task, request_folder_generation_task
 from .helper import _cleanup_empty_folders
 
 class GenerationSessionLCView(ListCreateAPIView):
@@ -119,7 +119,7 @@ class SessionChatView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         instance = serializer.save(session_under=session_object)
 
-        task = request_generate_and_apply.delay(
+        task = request_file_generation_task.delay(
             session_id,
             request.user.id,
             instance.id
@@ -158,13 +158,8 @@ class GenerationTestView(APIView):
     def get(self, request, session_id):
         try:
             user_id = request.user.id
-            generation_result = request_code_generation(session_id, user_id)
-
-            response_data = generation_result.model_dump(mode='json')
-
-            print(response_data)
-
-            return Response(response_data, status=status.HTTP_200_OK)
+            task = request_file_generation_task.delay(session_id, user_id, 0)
+            return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
 
         except Exception as e:
             return Response(
