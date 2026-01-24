@@ -15,6 +15,7 @@ file_init_message="프로젝트의 기존 코드 스타일과 구조를 파악�
 page_init_message="위 모든 정보를 종합하여, 다음 URL에 해당하는 완성된 페이지 컴포넌트와 하위 컴포넌트 코드를 생성하세요."
 request_init_message="다음은 당신과 유저가 지금까지 해당 기능을 구현하기 위해 나눈 대화입니다. 다음의 대화에서 특히 유저의 요청을 참고하세요."
 code_generate_final_message="위 정보를 종합하여 즉시 배포 가능한 수준의 코드를 작성하세요. **코드를 모두 작성한 후에는, 반드시 [Protocol: Handover Context] 섹션에서 정의한 양식에 맞춰 인계 사항을 출력해야 합니다.**"
+structure_init_message="아래 목록은 현재 프로젝트 환경에 실제로 존재하는 모든 폴더의 경로와 고유 ID를 포함하고 있습니다. 신규 파일을 만들 경우, 아래의 폴더 목록에서 적절한 폴더를 선택하시오."
 
 # folder generate
 folder_generate_init_message="당신은 숙련된 시니어 프론트엔드 개발자입니다. 제공된 React 프로젝트의 아키텍처 규칙과 현재 파일 구조를 분석하여, 새로운 요구사항을 구현하기 위해 **생성해야 할 폴더(Directory)** 목록만 작성하세요."

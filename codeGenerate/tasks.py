@@ -10,18 +10,51 @@ from celery import shared_task
 logger = logging.getLogger(__name__)
 
 @shared_task(bind=True)
-def request_generate_and_apply(self, session_id, user_id, last_chat_id):
+def request_folder_generation_task(self, session_id, user_id, last_chat_id):
     try:
-        response_result = request_code_generation(session_id, user_id)
+        response_result = request_folder_generation(session_id, user_id)
         session = GenerationSession.objects.get(id=session_id)
         project = session.project_under
         file_root_folder = Folder.objects.filter(
             project_under=project,  
             parent_folder__isnull=True    
         ).first()
+        
+        related_folders_to_add = set()
+
+        if response_result.is_folder_creation_required:
+            with transaction.atomic():
+                for new_folder in response_result.folders_to_create:
+                    folder = file_root_folder.get_or_create_by_path(new_folder.folderpath)
+                    related_folders_to_add.add(folder)
+
+                if related_folders_to_add:
+                    session.related_folders.add(*related_folders_to_add)
+        return "SUCCESS"
+    except Exception as e:
+        logger.error(f"Celery Task Failed (Session ID: {session_id}): {e}", exc_info=True)
+
+        try:
+            with transaction.atomic():
+                session = GenerationSession.objects.select_for_update(id=session_id)
+                session.is_occupied = False
+                session.save()
+
+                SessionChat.objects.filter(id=last_chat_id).delete()
+
+        except Exception as cleanup_error:
+            logger.critical(f"Critical: Failed to cleanup discussion state: {cleanup_error}")
+
+        raise e
+
+@shared_task(bind=True)
+def request_generate_and_apply(self, session_id, user_id, last_chat_id):
+    try:
+        response_result = request_code_generation(session_id, user_id)
+        session = GenerationSession.objects.get(id=session_id)
+        project = session.project_under
 
         related_files_to_add = set()
-        related_folders_to_add = set()
 
         with transaction.atomic():
             # modify existing files
@@ -31,11 +64,11 @@ def request_generate_and_apply(self, session_id, user_id, last_chat_id):
                 target_file.save()
 
                 related_files_to_add.add(target_file)
-            
+
+            """
             # create new files
             for creation_data in response_result.files_to_create:
                 folder_under = file_root_folder.get_or_create_by_path(creation_data.filepath)
-                related_folders_to_add.add(folder_under)
                 
                 new_file = ProjectFile.objects.create(
                     project_under=project,
@@ -45,7 +78,7 @@ def request_generate_and_apply(self, session_id, user_id, last_chat_id):
                     draft_content=creation_data.content
                 )
                 related_files_to_add.add(new_file)
-                
+                """
             # update handover context
             project.handover_context = response_result.handover_context
 
@@ -64,9 +97,6 @@ def request_generate_and_apply(self, session_id, user_id, last_chat_id):
             # add related files and folders
             if related_files_to_add:
                 session.related_files.add(*related_files_to_add)
-            
-            if related_folders_to_add:
-                session.related_folders.add(*related_folders_to_add)
 
             return "SUCCESS"
                 

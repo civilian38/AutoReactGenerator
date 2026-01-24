@@ -14,7 +14,7 @@ from .models import GenerationSession
 from .serializers import *
 from .paginations import *
 from .LLMService import get_folder_generation_prompt, get_generation_prompt, request_code_generation, request_folder_generation
-from .tasks import request_generate_and_apply
+from .tasks import request_generate_and_apply, request_folder_generation_task
 from .helper import _cleanup_empty_folders
 
 class GenerationSessionLCView(ListCreateAPIView):
@@ -162,6 +162,8 @@ class GenerationTestView(APIView):
 
             response_data = generation_result.model_dump(mode='json')
 
+            print(response_data)
+
             return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
@@ -174,11 +176,8 @@ class FolderGenerationTestView(APIView):
     def get(self, request, session_id):
         try:
             user_id = request.user.id
-            generation_result = request_folder_generation(session_id, user_id)
-
-            response_data = generation_result.model_dump(mode='json')
-
-            return Response(response_data, status=status.HTTP_200_OK)
+            task = request_folder_generation_task.delay(session_id, user_id, 0)
+            return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
 
         except Exception as e:
             return Response(

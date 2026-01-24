@@ -12,12 +12,6 @@ from .helper import get_root_folder_with_prefetch_related
 class FolderToCreate(BaseModel):
     filepath: str = Field(description="생성할 폴더의 전체 경로 문자열. (예시: '[project_name]/src/components/buttons'). 주의: './'나 '/'로 시작하지 말고, '[project_name]'와 같은 최상위 폴더부터 작성할 것.")
 
-
-class FileToCreate(BaseModel):
-    filename: str = Field(description="새로운 파일의 파일 명. 확장자까지 명시할 것.")
-    filepath: str = Field(description="새로운 파일이 위치할 폴더의 이름. 기존 프로젝트에서 확인할 수 있는 루트폴더로부터 '/'로 하위 폴더를 구분하여 full path를 작성하되, 파일 자체는 작성하지 말것.")
-    content: str = Field(description="새로운 파일의 완성된 전체 코드")
-
 def get_folder_to_create_list_model(project_name: str):
     FolderToCreate = create_model(
         'FolderToCreate',
@@ -41,19 +35,32 @@ def get_folder_to_create_list_model(project_name: str):
     )
     return ListFormat
 
-def get_response_format_model(files_ids: List[int]):
+def get_response_format_model(files_ids: List[int], folders_ids: List[int]):
     FileIdEnum = IntEnum('FileIdEnum', {f'ID_{item}': item for item in files_ids})
-    RestrictedInt = Annotated[
+    FileRestrictedInt = Annotated[
         FileIdEnum, 
         AfterValidator(lambda x: x.value),
         PlainSerializer(lambda x: x, return_type=int)
     ]
     FileToModify = create_model(
-        'FileToModify',
-        file_id=(RestrictedInt, Field(description=f"수정할 파일의 id. 파일의 id는 파일 명 뒤에 | File ID: [] 로 적혀있다.")),
+        'FileToModify', 
+        file_id=(FileRestrictedInt, Field(description=f"수정할 파일의 id. 파일의 id는 파일 명 뒤에 | File ID: [] 로 적혀있다.")),
         modify_content=(str, Field(description="파일의 수정본. 수정본은 반드시 완성된 전체 코드로 되어 있어야 함."))
     )
-    
+
+    FolderIdEnum = IntEnum('FolderIdEnum', {f'ID_{item}': item for item in folders_ids})
+    FolderRestrictedInt = Annotated[
+        FolderIdEnum, 
+        AfterValidator(lambda x: x.value),
+        PlainSerializer(lambda x: x, return_type=int)
+    ]
+    FileToCreate = create_model(
+        'FileToCreate',
+        folder_id=(FolderRestrictedInt, Field(description="새롭게 만들 파일이 위치할 폴더의 id. 폴더의 id는 폴더 목록에서 폴더 경로 앞에 [0] 과 같이 적혀 있다.")),
+        filename=(str,Field(description="새로운 파일의 파일 명. 확장자까지 명시할 것.")),
+        content=(str, Field(description="새로운 파일의 완성된 전체 코드"))
+    )
+
     ResponseFormat = create_model(
         'ResponseFormat',
         files_to_modify=(List[FileToModify], Field(description="수정해야 할 파일들의 리스트")),
@@ -164,6 +171,16 @@ def get_generation_prompt(session_id):
         request_text += discussion_init_message + "\n"
         for discussion in context_data.get('discussions'):
             request_text += discussion.get_prompt_text() + "\n"
+
+    # folder structure
+    all_folders = Folder.objects.filter(project_under=session_project).select_related('parent_folder')
+    folder_dict = {folder.id: folder for folder in all_folders}
+    root_folder = get_root_folder_with_prefetch_related(all_folders, folder_dict)
+    
+    request_text += "====Folder Structure====\n"
+    request_text += structure_init_message + "\n"
+    request_text += root_folder.get_tree_structure() + "\n"
+    request_text += "=" * 8 + "\n"
 
     # files
     if context_data.get('files'):

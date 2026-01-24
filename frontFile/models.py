@@ -26,7 +26,7 @@ class Folder(models.Model):
         else:
             current_path = self.name
         
-        return_text += f"[{self.id}] {current_path}\n"
+        return_text += f"[ID: {self.id}] {current_path}\n"
         for subfolder in self.subfolders.all():
             return_text += subfolder.get_tree_structure(current_path)
         return return_text
