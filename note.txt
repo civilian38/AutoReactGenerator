@@ -3,4 +3,5 @@
 - draft content 수락 삭제
 - discussion 채팅 프롬프트 확인 필요
 - project handover context draft content
-- discussion summary 요약 및 전달
+- discussion summary 요약 및 전달 + folder generation 시에 API Document 전달
+- (optional) folder generation시 folder 사용 가이드

@@ -2,6 +2,8 @@ from django.shortcuts import get_object_or_404
 from django.db.models import F, Q
 from django.db import transaction
 
+from celery import chain
+
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
@@ -103,30 +105,52 @@ class SessionStatusDiscardedView(APIView):
 class SessionChatView(APIView):
     permission_classes = [IsAuthenticated, SubClassIsOwnerOrReadOnly]
     pagination_class = None
+
     def post(self, request, session_id):
+        # 1. 세션 조회 및 권한 체크
         session_object = get_object_or_404(GenerationSession, pk=session_id)
         self.check_object_permissions(request, session_object)
 
+        # 2. 상태 검증 (Fail Fast)
         if session_object.is_occupied:
-            return Response({"detail": "session occupied"}, status=status.HTTP_409_CONFLICT,)
+            return Response({"detail": "session occupied"}, status=status.HTTP_409_CONFLICT)
         elif session_object.project_under.to_do_request:
-            return Response({"detail": "to do reqeust not accepted"}, status=status.HTTP_409_CONFLICT,)
+            return Response({"detail": "to do request not accepted"}, status=status.HTTP_409_CONFLICT)
         elif session_object.status != "ACTIVE":
             return Response({"detail": "session not active"}, status=status.HTTP_409_CONFLICT)
 
+        # 3. 데이터 검증
         serializer = SessionChatUserInputSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        instance = serializer.save(session_under=session_object)
 
-        task = request_file_generation_task.delay(
-            session_id,
-            request.user.id,
-            instance.id
-        )
-        session_object.is_occupied = True
-        session_object.save()
-        return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
+        try:
+            # 4. 트랜잭션 시작
+            with transaction.atomic():
+                # 채팅 저장
+                instance = serializer.save(session_under=session_object)
+
+                # 세션 잠금
+                session_object.is_occupied = True
+                session_object.save()
+
+                # 5. Celery Chain 구성 (폴더 생성 -> 파일 생성)
+                workflow = chain(
+                    request_folder_generation_task.si(session_id, request.user.id, instance.id),
+                    request_file_generation_task.si(session_id, request.user.id, instance.id)
+                )
+                
+                # 비동기 실행
+                workflow.apply_async()
+            
+            # 트랜잭션이 성공적으로 커밋된 후에 응답 반환
+            return Response({}, status=status.HTTP_202_ACCEPTED)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Failed to start generation: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 
 """

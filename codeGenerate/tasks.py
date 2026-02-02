@@ -96,6 +96,9 @@ def request_file_generation_task(self, session_id, user_id, last_chat_id):
             if related_files_to_add:
                 session.related_files.add(*related_files_to_add)
 
+            session.is_occupied = False
+            session.save()
+
             return "SUCCESS"
                 
     except Exception as e:
