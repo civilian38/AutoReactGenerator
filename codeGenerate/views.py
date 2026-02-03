@@ -36,9 +36,15 @@ class SessionStatusCompletedView(APIView):
     def post(self, request, pk):
         session_object = get_object_or_404(GenerationSession, pk=pk)
         self.check_object_permissions(request, session_object)
-        
+
+        # fail test
         if session_object.project_under.to_do_request:
             return Response({"detail": "to do reqeust not accepted"}, status=status.HTTP_409_CONFLICT,)
+        if session_object.is_occupied:
+            return Response({"detail": "session occupied"}, status=status.HTTP_409_CONFLICT)
+        elif session_object.status != "ACTIVE":
+            return Response({"detail": "session not active"}, status=status.HTTP_409_CONFLICT)
+        project_object = session_object.project_under
 
         with transaction.atomic():
             target_files = session_object.related_files.exclude(
@@ -51,6 +57,10 @@ class SessionStatusCompletedView(APIView):
             )
 
             session_object.related_pages.all().update(is_implemented=True)
+
+            project_object.handover_context = project_object.handover_draft
+            project_object.handover_draft = ""
+            project_object.save()
 
             session_object.status = "COMPLETED"
             session_object.save()
@@ -67,6 +77,13 @@ class SessionStatusDiscardedView(APIView):
     def post(self, request, pk):
         session_object = get_object_or_404(GenerationSession, pk=pk)
         self.check_object_permissions(request, session_object)
+        project_object = session_object.project_under
+
+        # Fail Test
+        if session_object.is_occupied:
+            return Response({"detail": "session occupied"}, status=status.HTTP_409_CONFLICT)
+        elif session_object.status != "ACTIVE":
+            return Response({"detail": "session not active"}, status=status.HTTP_409_CONFLICT)
 
         with transaction.atomic():
             # delete newly created files and folders
@@ -82,6 +99,10 @@ class SessionStatusDiscardedView(APIView):
                 Q(draft_content__isnull=True) | Q(draft_content='')
             )
             updated_file_count = files_to_revert.update(draft_content=None)
+
+            # discard project handover (draft)
+            project_object.handover_draft = ""
+            project_object.save()
 
             # delete to do reqeust
             project_under = session_object.project_under

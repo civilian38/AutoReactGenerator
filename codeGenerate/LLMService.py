@@ -90,7 +90,7 @@ def get_folder_generation_prompt(session_id) -> str:
     request_text = str()
     request_text += folder_generate_init_message + "\n"
 
-    # handovercontext
+    # handover context
     request_text += "====Handover Context====\n"
     request_text += folder_handover_context_init_message + "\n"
     request_text += session_project.handover_context + "\n"
@@ -150,12 +150,18 @@ def get_generation_prompt(session_id):
 
     request_text = str()
     request_text += code_generate_init_message + "\n"
+    request_text += "====Project Outline====\n"
+    request_text += project_outline_init_message + "\n"
+    request_text += session_project.instruction + "\n"
 
     # handover context
     request_text += "====Protocol: Handover Context====\n"
     request_text += handover_context_init_message + "\n"
     request_text += "현재까지 기록된 handover context는 다음과 같습니다.\n==========\n"
-    request_text += session_project.handover_context + "\n==========\n"
+    if session_project.handover_draft:
+        request_text += session_project.handover_draft + "\n==========\n"
+    else:
+        request_text += session_project.handover_context + "\n==========\n"
 
     # apidocs
     if context_data.get('apidocs'):

@@ -8,6 +8,7 @@ code_generate_init_message="""
     3. **Error Handling**: API 에러 처리 로직을 반드시 포함하세요
 
 """
+project_outline_init_message="당신은 다음과 같은 프로젝트를 진행하고 있습니다."
 handover_context_init_message="이 프로젝트는 연속적인 세션을 통해 개발되므로, 당신은 코드 작성 후 반드시 다음 AI(또는 미래의 당신)를 위한 '인계 사항'을 작성해야 합니다. 코드 블록 작성이 끝난 뒤, 아래 포맷에 맞춰 프로젝트 상태를 요약하세요.\n\n[Handover Context Format]\n---\n## 🏗 Global Architecture (변하지 않는 규칙)\n- **Stack**: [사용된 라이브러리 및 버전]\n- **Style**: [디자인 시스템, 컬러, 공통 UI 규칙]\n- **Auth/API**: [인증 방식, API 호출 패턴, 에러 핸들링 규칙]\n- **Structure Rule**: [폴더 구조 및 컴포넌트 분리 원칙]\n\n## 🚀 Current Progress (현재 진행 상황)\n- **Feature Status**: [현재 완료된 기능 목록]\n- **Last Update**: [방금 수행한 작업 요약]\n- **State/Data**: [주요 데이터 흐름 및 상태 관리 방식]\n- **Next Step**: [다음에 구현해야 할 기능 또는 해결해야 할 이슈]"
 apidoc_init_message="이 섹션의 API 명세를 분석하여 데이터 Fetching 로직(로딩/에러 처리 포함)을 구현하고 응답 데이터를 UI에 바인딩하세요."
 discussion_init_message="아래 기획서에 정의된 컴포넌트 구조, State 관리 전략, 사용자 인터랙션 흐름을 정확하게 코드로 구현하세요."

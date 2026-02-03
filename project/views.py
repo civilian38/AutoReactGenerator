@@ -58,4 +58,12 @@ class ProjectToDoRequestAcceptAPIView(APIView):
                 "message": "Project To Do Request Accepted"
             }, 
         )
-    
+
+"""
+Only For test
+"""
+
+class ProjectTestRetrieveAPIView(RetrieveAPIView):
+    serializer_class = TestProjectSerializer
+    permission_classes = [IsOwner, ]
+    queryset = Project.objects.all()

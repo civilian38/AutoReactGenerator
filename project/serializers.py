@@ -22,9 +22,20 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = '__all__'
-        read_only_fields = ('handover_context', 'to_do_request')
+        read_only_fields = ('handover_context', 'handover_draft', 'instruction', 'to_do_request')
 
 class ProjectRetrieveSerializer(serializers.ModelSerializer):
+    created_by = ARUserInfoSerializer(read_only=True)
+
+    class Meta:
+        model = Project
+        fields = ('id', 'name', 'base_api_url', 'base_web_url', 'description', 'instruction', 'handover_context', 'created_by', 'created_at')
+
+"""
+Only For Test
+"""
+
+class TestProjectSerializer(serializers.ModelSerializer):
     created_by = ARUserInfoSerializer(read_only=True)
 
     class Meta:

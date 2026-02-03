@@ -78,7 +78,7 @@ def request_file_generation_task(self, session_id, user_id, last_chat_id):
                 related_files_to_add.add(new_file)
 
             # update handover context
-            project.handover_context = response_result.handover_context
+            project.handover_draft = response_result.handover_context
 
             # update to do request if exists
             if response_result.to_do_request:
