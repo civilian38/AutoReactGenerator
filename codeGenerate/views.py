@@ -165,7 +165,7 @@ class SessionChatView(APIView):
                 workflow.apply_async()
             
             # 트랜잭션이 성공적으로 커밋된 후에 응답 반환
-            return Response({}, status=status.HTTP_202_ACCEPTED)
+            return Response({"detail": "async workflow initiated successfully"}, status=status.HTTP_202_ACCEPTED)
 
         except Exception as e:
             return Response(

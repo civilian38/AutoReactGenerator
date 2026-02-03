@@ -4,6 +4,7 @@ from project.models import Project
 class Discussion(models.Model):
     title = models.CharField(max_length=100)
     summary = models.TextField(blank=True, null=True)
+    short_summary = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     project_under = models.ForeignKey(Project, on_delete=models.CASCADE)

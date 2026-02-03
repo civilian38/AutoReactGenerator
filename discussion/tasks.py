@@ -1,6 +1,6 @@
 from .models import Discussion, DiscussionChat
 from .serializers import DiscussionChatLLMSerializer, DiscussionSummarySerializer
-from .LLMService import generate_chat_response, summarize_chats
+from .LLMService import generate_chat_response, summarize_chats, generate_short_summary
 
 import logging
 from django.db import transaction
@@ -55,6 +55,19 @@ def summarize_chat_and_save(self, discussion_id, user_id):
     response_text = summarize_chats(discussion_id, user_id)
 
     update_data = {'summary': response_text}
+    serializer = DiscussionSummarySerializer(instance=discussion_object, data=update_data, partial=True)
+    if not serializer.is_valid():
+        raise ValueError(f"Validation Error: {serializer.errors}")
+
+    serializer.save()
+    return "SUCCESS"
+
+@shared_task(bind=True)
+def make_short_summary_task(self, discussion_id, user_id):
+    discussion_object = Discussion.objects.get(id=discussion_id)
+    response_text = generate_short_summary(discussion_id, user_id)
+
+    update_data = {'short_summary': response_text}
     serializer = DiscussionSummarySerializer(instance=discussion_object, data=update_data, partial=True)
     if not serializer.is_valid():
         raise ValueError(f"Validation Error: {serializer.errors}")
