@@ -26,6 +26,8 @@ def request_folder_generation_task(self, session_id, user_id, last_chat_id):
             with transaction.atomic():
                 for new_folder in response_result.folders_to_create:
                     folder = file_root_folder.get_or_create_by_path(new_folder.folderpath)
+                    folder.description = new_folder.description
+                    folder.save()
                     related_folders_to_add.add(folder)
 
                 if related_folders_to_add:
@@ -36,7 +38,7 @@ def request_folder_generation_task(self, session_id, user_id, last_chat_id):
 
         try:
             with transaction.atomic():
-                session = GenerationSession.objects.select_for_update(id=session_id)
+                session = GenerationSession.objects.select_for_update().get(id=session_id)
                 session.is_occupied = False
                 session.save()
 
@@ -106,7 +108,7 @@ def request_file_generation_task(self, session_id, user_id, last_chat_id):
 
         try:
             with transaction.atomic():
-                session = GenerationSession.objects.select_for_update(id=session_id)
+                session = GenerationSession.objects.select_for_update().get(id=session_id)
                 session.is_occupied = False
                 session.save()
 

@@ -15,7 +15,7 @@ from AutoReactGenerator.permissions import SubClassIsOwnerOrReadOnly
 from .models import GenerationSession
 from .serializers import *
 from .paginations import *
-from .LLMService import get_folder_generation_prompt, get_generation_prompt, request_code_generation
+from .LLMService import get_folder_generation_prompt, get_generation_prompt, request_folder_generation
 from .tasks import request_file_generation_task, request_folder_generation_task
 from .helper import _cleanup_empty_folders
 
@@ -214,6 +214,13 @@ class GenerationTestView(APIView):
 
 class FolderGenerationTestView(APIView):
     def get(self, request, session_id):
+        user_id = request.user.id
+        response_result = request_folder_generation(session_id, user_id)
+        print(response_result)
+        return Response({"data": response_result}, status=status.HTTP_200_OK)
+
+
+        """
         try:
             user_id = request.user.id
             task = request_folder_generation_task.delay(session_id, user_id, 0)
@@ -224,3 +231,4 @@ class FolderGenerationTestView(APIView):
                 {"error": str(e), "type": type(e).__name__}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        """

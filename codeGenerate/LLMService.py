@@ -21,7 +21,8 @@ def get_folder_to_create_list_model(project_name: str):
                 f"주의: './'나 '/'로 시작하지 말고, '{project_name}'와 같은 최상위 루트 폴더명부터 시작하여 전체 경로를 기입할 것. "
                 f"(예시: '{project_name}/src/components/buttons')"
             )
-        ))
+        )),
+        description=(str, Field(description="폴더에 대한 설명. 1~2문장 이내로 작성할것"))
     )
 
     ListFormat = create_model(
@@ -93,7 +94,7 @@ def get_folder_generation_prompt(session_id) -> str:
     # handover context
     request_text += "====Handover Context====\n"
     request_text += folder_handover_context_init_message + "\n"
-    request_text += session_project.handover_context + "\n"
+    request_text += session_project.get_prompt_text() + "\n"
     request_text += "=" * 8 + "\n"
 
     # folder structure
@@ -118,7 +119,7 @@ def get_folder_generation_prompt(session_id) -> str:
         request_text += "====Discussions(기획서)====\n"
         request_text += folder_discussion_init_message + "\n"
         for discussion in context_data.get('discussions'):
-            request_text += discussion.get_prompt_text() + "\n"
+            request_text += discussion.get_prompt_text(short_version=True) + "\n"
     
     # pages
     if context_data.get('pages'):
@@ -126,6 +127,14 @@ def get_folder_generation_prompt(session_id) -> str:
         request_text += folder_page_init_message + "\n"
         for page in context_data.get('pages'):
             request_text += page.get_prompt_text() + "\n"
+    
+    # apidocs
+    if context_data.get('apidocs'):
+        request_text += "====API DOCS====\n"
+        request_text += folder_apidoc_init_message + "\n"
+        for apidoc in context_data.get('apidocs'):
+            request_text += apidoc.get_prompt_text() + "\n"
+    request_text += "\n"*2
 
     # chats    
     Chats = SessionChat.objects.filter(session_under=current_session)
@@ -158,10 +167,7 @@ def get_generation_prompt(session_id):
     request_text += "====Protocol: Handover Context====\n"
     request_text += handover_context_init_message + "\n"
     request_text += "현재까지 기록된 handover context는 다음과 같습니다.\n==========\n"
-    if session_project.handover_draft:
-        request_text += session_project.handover_draft + "\n==========\n"
-    else:
-        request_text += session_project.handover_context + "\n==========\n"
+    request_text += session_project.get_prompt_text() + "\n==========\n"
 
     # apidocs
     if context_data.get('apidocs'):

@@ -6,6 +6,7 @@ class Folder(models.Model):
     project_under = models.ForeignKey(Project, on_delete=models.CASCADE)
     parent_folder = models.ForeignKey('self', null=True, blank=True, related_name='subfolders', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'[{self.id}] {self.get_full_path()}'
@@ -19,14 +20,14 @@ class Folder(models.Model):
     def get_tree_structure(self, parent_structure=""):
         return_text = str()
         if self.is_root():
-            return_text += "[{폴더 ID}] {폴더 경로}\n\n"
+            return_text += "[{폴더 ID}] {폴더 경로} | {(optional)설명}\n\n"
             
         if parent_structure:
             current_path = f"{parent_structure}/{self.name}"
         else:
             current_path = self.name
         
-        return_text += f"[ID: {self.id}] {current_path}\n"
+        return_text += f"[ID: {self.id}] {current_path}" + (f" | {self.description}" if self.description else "") + "\n"
         for subfolder in self.subfolders.all():
             return_text += subfolder.get_tree_structure(current_path)
         return return_text
@@ -55,7 +56,7 @@ class ProjectFile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'[{self.id}] ({self.project_under}) {self.folder}/{self.name}'
+        return f'[{self.id}] {self.folder.get_full_path()}/{self.name}'
     
     def get_file_path(self):
         return f'{self.folder.get_full_path()}/{self.name}'

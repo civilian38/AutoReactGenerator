@@ -16,3 +16,8 @@ class Project(models.Model):
     def __str__(self):
         owner_name = self.created_by.nickname if self.created_by.nickname else self.created_by.username
         return f'{self.name}({owner_name})'
+    
+    def get_prompt_text(self):
+        if self.handover_draft:
+            return self.handover_draft
+        return self.handover_context
