@@ -9,8 +9,8 @@ urlpatterns = [
 
     # URLS FOR TEST
 
-    path('session/<int:session_id>/prompttest/', PromptTestView.as_view(), name='session-prompttest'),
-    path('session/<int:session_id>/folderprompttest/', FolderPromptTestView.as_view(), name='folder-promopttest'),
+    # path('session/<int:session_id>/prompttest/', PromptTestView.as_view(), name='session-prompttest'),
+    # path('session/<int:session_id>/folderprompttest/', FolderPromptTestView.as_view(), name='folder-promopttest'),
     # path('session/<int:session_id>/generationtest/', GenerationTestView.as_view(), name='session-generationtest'),
     # path('session/<int:session_id>/foldergenerationtest/', FolderGenerationTestView.as_view(), name='folder-generationtest'), 
 ]
