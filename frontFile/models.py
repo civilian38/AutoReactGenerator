@@ -6,6 +6,7 @@ class Folder(models.Model):
     project_under = models.ForeignKey(Project, on_delete=models.CASCADE)
     parent_folder = models.ForeignKey('self', null=True, blank=True, related_name='subfolders', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
 
     def __str__(self):
         return f'[{self.id}] {self.get_full_path()}'
@@ -15,6 +16,35 @@ class Folder(models.Model):
     
     def is_root(self):
         return self.parent_folder is None
+    
+    def get_tree_structure(self, parent_structure=""):
+        return_text = str()
+        if self.is_root():
+            return_text += "[{폴더 ID}] {폴더 경로} | {(optional)설명}\n\n"
+            
+        if parent_structure:
+            current_path = f"{parent_structure}/{self.name}"
+        else:
+            current_path = self.name
+        
+        return_text += f"[ID: {self.id}] {current_path}" + (f" | {self.description}" if self.description else "") + "\n"
+        for subfolder in self.subfolders.all():
+            return_text += subfolder.get_tree_structure(current_path)
+        return return_text
+    
+    def get_or_create_by_path(self, path_str):
+        path_parts = [p for p in path_str.strip('/').split('/') if p]
+        if self.is_root() and path_parts[0] == self.name:
+            path_parts.pop(0)
+        
+        current_folder = self
+        for part_name in path_parts:
+            current_folder, _ = current_folder.subfolders.get_or_create(
+                name=part_name,
+                defaults={'project_under': self.project_under}
+            )
+        
+        return current_folder
 
 class ProjectFile(models.Model):
     project_under = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -26,7 +56,7 @@ class ProjectFile(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f'[{self.id}] ({self.project_under}) {self.folder}/{self.name}'
+        return f'[{self.id}] {self.folder.get_full_path()}/{self.name}'
     
     def get_file_path(self):
         return f'{self.folder.get_full_path()}/{self.name}'
@@ -35,7 +65,7 @@ class ProjectFile(models.Model):
         return bool(self.draft_content)
     
     def get_prompt_text(self):
-        text = "=" * 5 + self.get_file_path() + "=" * 5 + "\n"
+        text = "=" * 5 + f"{self.get_file_path()} | File ID: {self.id}" + "=" * 5 + "\n"
         if self.draft_content:
             text += self.draft_content + "\n"
         else:

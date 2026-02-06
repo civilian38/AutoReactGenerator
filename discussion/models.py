@@ -4,6 +4,7 @@ from project.models import Project
 class Discussion(models.Model):
     title = models.CharField(max_length=100)
     summary = models.TextField(blank=True, null=True)
+    short_summary = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     project_under = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -12,9 +13,9 @@ class Discussion(models.Model):
     def __str__(self):
         return f'{self.project_under.name} - {self.title}'
 
-    def get_prompt_text(self):
-        text = f"===== {self.title} =====\n"
-        text += self.summary + "\n"
+    def get_prompt_text(self, short_version=False):
+        text = f"[Discussion: {self.title} ]\n"
+        text += (self.short_summary if short_version else self.summary) + "\n"
         text += "=" * 10 + "\n"
 
         return text

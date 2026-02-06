@@ -10,6 +10,6 @@ class DiscussionChatInline(admin.TabularInline):
 
 @admin.register(Discussion)
 class DiscussionAdmin(admin.ModelAdmin):
-    fields = ('id', 'title', 'summary', 'project_under', 'created_at', 'updated_at')
+    fields = ('id', 'title', 'summary', 'short_summary', 'project_under', 'created_at', 'updated_at')
     readonly_fields = ('id', 'created_at', 'updated_at')
     inlines = [DiscussionChatInline]

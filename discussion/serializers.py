@@ -8,7 +8,7 @@ class DiscussionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discussion
         fields = '__all__'
-        read_only_fields = ('summary', 'is_occupied')
+        read_only_fields = ('summary', 'short_summary', 'is_occupied')
 
 class DiscussionSummarySerializer(serializers.ModelSerializer):
     project_under = serializers.PrimaryKeyRelatedField(read_only=True)

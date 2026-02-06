@@ -1,3 +1,4 @@
+from celery import chain
 from django.db import transaction
 from drf_yasg import openapi
 from rest_framework.generics import ListAPIView, ListCreateAPIView, RetrieveUpdateDestroyAPIView, get_object_or_404
@@ -10,7 +11,7 @@ from drf_yasg.utils import swagger_auto_schema, no_body
 
 from .serializers import *
 from .permissions import DiscussionChatIsOwnerOrReadOnly
-from .tasks import get_chat_response_and_save, summarize_chat_and_save
+from .tasks import get_chat_response_and_save, summarize_chat_and_save, make_short_summary_task
 
 class DiscussionLCView(ListCreateAPIView):
     permission_classes = [IsOwnerOrReadOnly]
@@ -86,7 +87,8 @@ class ChatAPIView(APIView):
             serializer.validated_data['content'],
             discussion_id,
             request.user.id,
-            instance.id)
+            instance.id
+        )
         return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
 
 class ChatSummaryAPIView(APIView):
@@ -118,7 +120,12 @@ class ChatSummaryAPIView(APIView):
 
         chats = DiscussionChat.objects.filter(discussion_under=discussion_object)
         if not chats.exists():
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "no chat exists"}, status=status.HTTP_400_BAD_REQUEST)
 
-        task = summarize_chat_and_save.delay(discussion_object.id, request.user.id)
-        return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
+        workflow = chain(
+            summarize_chat_and_save.si(discussion_id, request.user.id),
+            make_short_summary_task.si(discussion_id, request.user.id)
+        )
+        workflow.apply_async()
+
+        return Response({"detail": "async workflow initiated successfully"}, status=status.HTTP_202_ACCEPTED)

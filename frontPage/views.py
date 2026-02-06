@@ -28,4 +28,5 @@ class FrontPageRUDView(RetrieveUpdateDestroyAPIView):
     serializer_class = FrontPageSerializer
 
     def perform_update(self, serializer):
-        serializer.save(project_under=serializer.instance.project_under, is_implemented=True)
+        serializer.instance.is_implemented=False
+        serializer.save()

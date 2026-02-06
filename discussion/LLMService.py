@@ -4,7 +4,7 @@ from google.genai.types import UserContent, ModelContent
 from rest_framework import status
 from rest_framework.response import Response
 
-from AutoReactGenerator.prompt import discussion_chat_init_message, discussion_chat_request_message, summarize_init_message, summarize_chats_message, summarize_prev_history_message, summarize_end_message
+from AutoReactGenerator.prompt import *
 from authentication.models import ARUser
 from .models import *
 
@@ -49,6 +49,24 @@ def summarize_chats(discussion_id, user_id):
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
         model="gemini-2.5-pro",
+        contents=message
+    )
+    return response.text
+
+def generate_short_summary(discussion_id, user_id):
+    current_discussion = Discussion.objects.get(id=discussion_id)
+    summary = current_discussion.summary
+
+    message = short_summary_init_message + "\n"
+    message += summary + "\n"
+    message += short_summary_request_message
+
+    user_obj = ARUser.objects.get(id=user_id)
+    api_key = user_obj.gemini_key_encrypted
+
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
         contents=message
     )
     return response.text

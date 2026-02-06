@@ -1,9 +1,14 @@
+from django.shortcuts import get_object_or_404
+
+from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
 from AutoReactGenerator.permissions import IsOwner
-from .serializers import *
 from frontFile.models import Folder
+from .serializers import *
 
 class ProjectLCAPIView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -29,5 +34,36 @@ class ProjectLCAPIView(ListCreateAPIView):
 
 class ProjectRetrieveAPIView(RetrieveAPIView):
     serializer_class = ProjectRetrieveSerializer
+    permission_classes = [IsOwner, ]
+    queryset = Project.objects.all()
+
+class ProjectToDoRequestAcceptAPIView(APIView):
+    permission_classes = [IsOwner, ]
+    
+    def post(self, request, project_id):
+        project_object = get_object_or_404(Project, pk=project_id)
+        self.check_object_permissions(request, project_object)
+
+        if project_object.to_do_request == "":
+            return Response(
+                {"message": "Request Already Accepted"},
+                status=status.HTTP_200_OK
+            )
+        
+        project_object.to_do_request = ""
+        project_object.save()
+
+        return Response(
+            {
+                "message": "Project To Do Request Accepted"
+            }, 
+        )
+
+"""
+Only For test
+"""
+
+class ProjectTestRetrieveAPIView(RetrieveAPIView):
+    serializer_class = TestProjectSerializer
     permission_classes = [IsOwner, ]
     queryset = Project.objects.all()
