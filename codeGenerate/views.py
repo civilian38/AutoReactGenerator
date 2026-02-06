@@ -127,6 +127,16 @@ class SessionChatView(APIView):
     permission_classes = [IsAuthenticated, SubClassIsOwnerOrReadOnly]
     pagination_class = None
 
+    def get(self, request, session_id):
+        session_object = get_object_or_404(GenerationSession, pk=session_id)
+        self.check_object_permissions(request, session_object)
+
+        chats = SessionChat.objects.filter(session_under=session_object)
+        serializer = SessionChatListSerializer(chats, many=True)
+
+        return Response(serializer.data)
+
+
     def post(self, request, session_id):
         # 1. 세션 조회 및 권한 체크
         session_object = get_object_or_404(GenerationSession, pk=session_id)
