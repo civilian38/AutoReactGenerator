@@ -1,11 +1,8 @@
 from django.urls import path
-from .views import ProjectLCAPIView, ProjectRetrieveAPIView, ProjectToDoRequestAcceptAPIView, ProjectTestRetrieveAPIView
+from .views import ProjectLCAPIView, ProjectRetrieveUpdateDestroyAPIView, ProjectToDoRequestAcceptAPIView
 
 urlpatterns = [
     path('', ProjectLCAPIView.as_view(), name='project-list-create'),
-    path('<int:pk>/', ProjectRetrieveAPIView.as_view(), name='project-detail-create'),
-    path('<int:project_id>/todoaccept/', ProjectToDoRequestAcceptAPIView.as_view(), name='project-todo-accept'),
-
-    # Only For Test
-    path('<int:pk>/test', ProjectTestRetrieveAPIView.as_view(), name='project-test-detail'),
+    path('<int:pk>/', ProjectRetrieveUpdateDestroyAPIView.as_view(), name='project-rud'),
+    # path('<int:project_id>/todoaccept/', ProjectToDoRequestAcceptAPIView.as_view(), name='project-todo-accept'),
 ]

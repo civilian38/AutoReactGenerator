@@ -1,7 +1,7 @@
 from django.shortcuts import get_object_or_404
 
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -32,8 +32,8 @@ class ProjectLCAPIView(ListCreateAPIView):
             name=instance.name
         )
 
-class ProjectRetrieveAPIView(RetrieveAPIView):
-    serializer_class = ProjectRetrieveSerializer
+class ProjectRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    serializer_class = ProjectRetrieveUpdateDestroySerializer
     permission_classes = [IsOwner, ]
     queryset = Project.objects.all()
 
@@ -58,12 +58,3 @@ class ProjectToDoRequestAcceptAPIView(APIView):
                 "message": "Project To Do Request Accepted"
             }, 
         )
-
-"""
-Only For test
-"""
-
-class ProjectTestRetrieveAPIView(RetrieveAPIView):
-    serializer_class = TestProjectSerializer
-    permission_classes = [IsOwner, ]
-    queryset = Project.objects.all()
