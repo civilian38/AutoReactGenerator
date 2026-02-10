@@ -15,6 +15,7 @@ HTTP_METHOD_CHOICES = [
 class APIDoc(models.Model):
     url = models.URLField(max_length=250)
     http_method = models.CharField(max_length=20, choices=HTTP_METHOD_CHOICES, default='GET')
+    method_order = models.IntegerField(default=0, db_index=True, editable=False)
     request_format = models.JSONField(default=dict, blank=True)
     request_headers = models.JSONField(default=dict, blank=True)
     query_params = models.JSONField(default=dict, blank=True)
@@ -26,6 +27,22 @@ class APIDoc(models.Model):
 
     def __str__(self):
         return f'{self.project_under} - ({self.http_method}){self.url}'
+    
+    class Meta:
+        ordering = ['url', 'method_order']
+    
+    def save(self, *args, **kwargs):
+        ordering_map = {
+            'GET': 1,
+            'POST': 2,
+            'PUT': 3,
+            'DELETE': 4,
+            'PATCH': 5,
+            'HEAD': 6,
+            'OPTIONS': 7
+        }
+        self.method_order = ordering_map.get(self.http_method, 99)
+        super().save(*args, **kwargs)
     
     def get_prompt_text(self):
         text = f"URL: {self.url}\n"
