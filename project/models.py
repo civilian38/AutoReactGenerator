@@ -21,3 +21,11 @@ class Project(models.Model):
         if self.handover_draft:
             return self.handover_draft
         return self.handover_context
+    
+    def get_root_folder(self):
+        from frontFile.models import Folder
+        root_folder = Folder.objects.filter(
+            project_under=self,  
+            parent_folder__isnull=True    
+        ).first()
+        return root_folder
