@@ -79,12 +79,12 @@ class ChatAPIView(APIView):
         serializer = DiscussionChatSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
         instance = serializer.save(discussion_under=discussion_object)
         discussion_object.is_occupied = True
         discussion_object.save()
 
         task = get_chat_response_and_save.delay(
-            serializer.validated_data['content'],
             discussion_id,
             request.user.id,
             instance.id
