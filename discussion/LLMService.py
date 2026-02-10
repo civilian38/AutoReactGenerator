@@ -8,7 +8,7 @@ from AutoReactGenerator.prompt import *
 from authentication.models import ARUser
 from .models import *
 
-def generate_chat_response(user_message, discussion_id, user_id):
+def generate_chat_response(discussion_id, user_id):
     current_discussion = Discussion.objects.get(id=discussion_id)
     prev_chats = DiscussionChat.objects.filter(discussion_under=current_discussion)
 
@@ -19,14 +19,13 @@ def generate_chat_response(user_message, discussion_id, user_id):
             history.append(UserContent(chat.content))
         else:
             history.append(ModelContent(chat.content))
-    history.append(UserContent(discussion_chat_request_message))
 
     user_obj = ARUser.objects.get(id=user_id)
     api_key = user_obj.gemini_key_encrypted
 
     client = genai.Client(api_key=api_key)
     chat_generator = client.chats.create(model="gemini-2.5-pro", history=history)
-    response = chat_generator.send_message(user_message)
+    response = chat_generator.send_message("")
     return response.text
 
 def summarize_chats(discussion_id, user_id):

@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
@@ -36,6 +37,13 @@ class ProjectRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = ProjectRetrieveUpdateDestroySerializer
     permission_classes = [IsOwner, ]
     queryset = Project.objects.all()
+
+    def perform_update(self, serializer):
+        with transaction.atomic():
+            instance = serializer.save()
+            root_folder = instance.get_root_folder()
+            root_folder.name = instance.name
+            root_folder.save()
 
 class ProjectToDoRequestAcceptAPIView(APIView):
     permission_classes = [IsOwner, ]

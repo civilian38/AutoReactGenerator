@@ -1,7 +1,5 @@
 # 구현 필요 사항
 - project description 수정 기능
-- draft content 수락 삭제
 - discussion 채팅 프롬프트 확인 필요
 - API document API 명세 List화 / Base Model에 대한 정보 추가
 - API document API 주소순 정렬
-- project 이름 변경시 root folder 이름 변경

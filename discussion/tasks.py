@@ -9,9 +9,9 @@ from celery import shared_task
 logger = logging.getLogger(__name__)
 
 @shared_task(bind=True)
-def get_chat_response_and_save(self, user_message, discussion_id, user_id, last_chat_id):
+def get_chat_response_and_save(self, discussion_id, user_id, last_chat_id):
     try:
-        response_text = generate_chat_response(user_message, discussion_id, user_id)
+        response_text = generate_chat_response(discussion_id, user_id)
 
         with transaction.atomic():
             discussion = Discussion.objects.select_for_update().get(id=discussion_id)

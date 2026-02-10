@@ -11,6 +11,7 @@ class APIDocSerializer(serializers.ModelSerializer):
     class Meta:
         model = APIDoc
         fields = '__all__'
+        read_only_fields = ('method_order',)
 
 class APIDocCreateSerializer(serializers.ModelSerializer):
     url = serializers.CharField()
@@ -19,6 +20,7 @@ class APIDocCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = APIDoc
         fields = '__all__'
+        read_only_fields = ('method_order',)
 
     def validate(self, attrs):
         incoming_url = attrs.get('url', '')
