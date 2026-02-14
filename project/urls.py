@@ -4,5 +4,5 @@ from .views import ProjectLCAPIView, ProjectRetrieveUpdateDestroyAPIView, Projec
 urlpatterns = [
     path('', ProjectLCAPIView.as_view(), name='project-list-create'),
     path('<int:pk>/', ProjectRetrieveUpdateDestroyAPIView.as_view(), name='project-rud'),
-    # path('<int:project_id>/todoaccept/', ProjectToDoRequestAcceptAPIView.as_view(), name='project-todo-accept'),
+    path('<int:project_id>/todoaccept/', ProjectToDoRequestAcceptAPIView.as_view(), name='project-todo-accept'),
 ]
