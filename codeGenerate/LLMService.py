@@ -144,6 +144,9 @@ def get_folder_generation_prompt(session_id) -> str:
         for chat in Chats:
             request_text += f"({"USER" if chat.is_by_user else "AGENT"}) {chat.content}\n"
     
+    request_text += "\n" * 3
+    request_text += folder_generate_final_message
+    
     return request_text
    
 def get_generation_prompt(session_id):
