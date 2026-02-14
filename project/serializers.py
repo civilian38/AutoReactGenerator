@@ -30,8 +30,8 @@ class ProjectRetrieveUpdateDestroySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ('id', 'name', 'base_api_url', 'base_web_url', 'description', 'instruction', 'created_by', 'created_at', 'handover_text')
-        read_only_fields = ('id', 'created_by', 'created_at', 'handover_text')
+        fields = ('id', 'name', 'base_api_url', 'base_web_url', 'description', 'instruction', 'created_by', 'created_at', 'handover_text', 'to_do_request')
+        read_only_fields = ('id', 'created_by', 'created_at', 'handover_text', 'to_do_request')
 
 """
 Only For Test
