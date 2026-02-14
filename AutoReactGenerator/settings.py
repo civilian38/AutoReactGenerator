@@ -165,6 +165,7 @@ CORS_ALLOWED_ORIGINS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'https://autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net',
+    'https://ar-web.delightfulisland-8239f9f6.koreacentral.azurecontainerapps.io',
     'https://localhost:8000'
 ]
 
