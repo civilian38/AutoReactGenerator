@@ -2,6 +2,8 @@ from django.db import models
 from project.models import Project
 from authentication.models import ARUser
 
+import json
+
 HTTP_METHOD_CHOICES = [
     ('GET', 'GET'),
     ('POST', 'POST'),
@@ -91,12 +93,26 @@ class APIDoc(models.Model):
         text = f"URL: {self.url}\n"
         text += f"요청 종류: {self.http_method}\n"
         text += f"요청에 대한 설명: {self.description}\n"
+        
+        request_bodies = self.request_bodies.all()
+        if request_bodies.exists():
+            text += "\n[Request Bodies]\n"
+            for req in request_bodies:
+                text += f"- 설명: {req.description or '없음'}\n"
+                text += f"  예시: {json.dumps(req.request_example, indent=2, ensure_ascii=False)}\n"
+                text += "=" * 4 + "\n"
+
+        response_bodies = self.response_bodies.all()
+        if response_bodies.exists():
+            text += "\n[Response Bodies]\n"
+            for res in response_bodies:
+                text += f"- 상태 코드: {res.http_status}\n"
+                text += f"  설명: {res.description or '없음'}\n"
+                text += f"  예시: {json.dumps(res.response_example, indent=2, ensure_ascii=False)}\n"
+                text += "=" * 4 + "\n"
+                
         text += "=" * 10
-
-        """
-        TO DO: Add request and response description
-        """
-
+        
         return text
 
 class APIRequestBody(models.Model):
