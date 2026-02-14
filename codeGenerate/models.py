@@ -34,7 +34,7 @@ class GenerationSession(models.Model):
 
     def get_related_objects(self):
         return {
-            'apidocs': self.related_apidocs.all(),
+            'apidocs': self.related_apidocs.prefetch_related('request_bodies', 'response_bodies').all(),
             'discussions': self.related_discussions.all(),
             'folders': self.related_folders.all(),
             'files': self.related_files.all(),

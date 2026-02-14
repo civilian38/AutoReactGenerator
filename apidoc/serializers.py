@@ -3,11 +3,48 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from project.models import Project
-from .models import APIDoc
+from .models import APIDoc, APIRequestBody, APIResponseBody
+
+class APIRequestBodySerializer(serializers.ModelSerializer):
+    apidoc = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = APIRequestBody
+        fields = '__all__'
+
+class APIRequestListSerializer(serializers.ModelSerializer):
+    description = serializers.SerializerMethodField()
+    class Meta:
+        model = APIRequestBody
+        fields = ('id', 'description')
+
+    def get_description(self, obj):
+        description = obj.description
+        return description[:30]
+
+class APIResponseBodySerializer(serializers.ModelSerializer):
+    apidoc = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = APIResponseBody
+        fields = '__all__'
+
+class APIResponseListSerializer(serializers.ModelSerializer):
+    description = serializers.SerializerMethodField()
+    class Meta:
+        model = APIResponseBody
+        fields = ('id', 'http_status', 'description')
+
+    def get_description(self, obj):
+        description = obj.description
+        return description[:30]
 
 class APIDocSerializer(serializers.ModelSerializer):
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
     project_under = serializers.PrimaryKeyRelatedField(read_only=True)
+    request_bodies = APIRequestListSerializer(many=True, read_only=True)
+    response_bodies = APIResponseListSerializer(many=True, read_only=True)
+
     class Meta:
         model = APIDoc
         fields = '__all__'
