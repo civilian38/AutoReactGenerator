@@ -24,8 +24,8 @@ DEBUG = True
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
+    "symmetrical-doodle-g6wq496r7j6fvgj-8000.app.github.dev",
     "autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net",
-    "https://fictional-garbanzo-j9w5j6977vr256px-3000.app.github.dev",
     'ar-web.delightfulisland-8239f9f6.koreacentral.azurecontainerapps.io',
 ]
 
@@ -165,6 +165,7 @@ CORS_ALLOWED_ORIGINS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'https://autoreactgenerator-g8g9bge3heh0addq.koreasouth-01.azurewebsites.net',
+    'https://localhost:8000'
 ]
 
 AUTH_USER_MODEL = 'authentication.ARUser'

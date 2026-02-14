@@ -12,14 +12,57 @@ HTTP_METHOD_CHOICES = [
     ('OPTIONS', 'OPTIONS'),
 ]
 
+class HttpStatus(models.IntegerChoices):
+    """
+    HTTP 상태 코드 정의 (숫자형)
+    """
+    # 1xx: 정보
+    HTTP_100_CONTINUE = 100, '100 Continue'
+    HTTP_101_SWITCHING_PROTOCOLS = 101, '101 Switching Protocols'
+
+    # 2xx: 성공
+    HTTP_200_OK = 200, '200 OK'
+    HTTP_201_CREATED = 201, '201 Created'
+    HTTP_202_ACCEPTED = 202, '202 Accepted'
+    HTTP_204_NO_CONTENT = 204, '204 No Content'
+    HTTP_205_RESET_CONTENT = 205, '205 Reset Content'
+    HTTP_206_PARTIAL_CONTENT = 206, '206 Partial Content'
+
+    # 3xx: 리다이렉션
+    HTTP_300_MULTIPLE_CHOICES = 300, '300 Multiple Choices'
+    HTTP_301_MOVED_PERMANENTLY = 301, '301 Moved Permanently'
+    HTTP_302_FOUND = 302, '302 Found'
+    HTTP_304_NOT_MODIFIED = 304, '304 Not Modified'
+    HTTP_307_TEMPORARY_REDIRECT = 307, '307 Temporary Redirect'
+    HTTP_308_PERMANENT_REDIRECT = 308, '308 Permanent Redirect'
+
+    # 4xx: 클라이언트 오류
+    HTTP_400_BAD_REQUEST = 400, '400 Bad Request'
+    HTTP_401_UNAUTHORIZED = 401, '401 Unauthorized'
+    HTTP_403_FORBIDDEN = 403, '403 Forbidden'
+    HTTP_404_NOT_FOUND = 404, '404 Not Found'
+    HTTP_405_METHOD_NOT_ALLOWED = 405, '405 Method Not Allowed'
+    HTTP_406_NOT_ACCEPTABLE = 406, '406 Not Acceptable'
+    HTTP_408_REQUEST_TIMEOUT = 408, '408 Request Timeout'
+    HTTP_409_CONFLICT = 409, '409 Conflict'
+    HTTP_410_GONE = 410, '410 Gone'
+    HTTP_415_UNSUPPORTED_MEDIA_TYPE = 415, '415 Unsupported Media Type'
+    HTTP_422_UNPROCESSABLE_ENTITY = 422, '422 Unprocessable Entity'
+    HTTP_429_TOO_MANY_REQUESTS = 429, '429 Too Many Requests'
+
+    # 5xx: 서버 오류
+    HTTP_500_INTERNAL_SERVER_ERROR = 500, '500 Internal Server Error'
+    HTTP_501_NOT_IMPLEMENTED = 501, '501 Not Implemented'
+    HTTP_502_BAD_GATEWAY = 502, '502 Bad Gateway'
+    HTTP_503_SERVICE_UNAVAILABLE = 503, '503 Service Unavailable'
+    HTTP_504_GATEWAY_TIMEOUT = 504, '504 Gateway Timeout'
+
 class APIDoc(models.Model):
     url = models.URLField(max_length=250)
     http_method = models.CharField(max_length=20, choices=HTTP_METHOD_CHOICES, default='GET')
     method_order = models.IntegerField(default=0, db_index=True, editable=False)
-    request_format = models.JSONField(default=dict, blank=True)
     request_headers = models.JSONField(default=dict, blank=True)
     query_params = models.JSONField(default=dict, blank=True)
-    response_format = models.JSONField(default=dict, blank=True)
     description = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(ARUser, on_delete=models.CASCADE)
@@ -48,11 +91,39 @@ class APIDoc(models.Model):
         text = f"URL: {self.url}\n"
         text += f"요청 종류: {self.http_method}\n"
         text += f"요청에 대한 설명: {self.description}\n"
-        if self.request_format:
-            text += f"Request Sample:\n{self.request_format}\n"
-        if self.response_format:
-            text += f"Response Sample:\n{self.response_format}\n"
         text += "=" * 10
+
+        """
+        TO DO: Add request and response description
+        """
 
         return text
 
+class APIRequestBody(models.Model):
+    apidoc = models.ForeignKey(APIDoc, related_name='request_bodies', on_delete=models.CASCADE)
+    request_example = models.JSONField(default=dict)
+    description = models.TextField(default="", blank=True)
+    
+    def __str__(self):
+        return f'{self.apidoc} | RequestBody({self.id})'
+
+class APIResponseBody(models.Model):
+    apidoc = models.ForeignKey(APIDoc, related_name='response_bodies', on_delete=models.CASCADE)
+
+    http_status = models.PositiveSmallIntegerField(
+        choices=HttpStatus.choices,
+        default=HttpStatus.HTTP_200_OK,
+    )
+
+    description = models.TextField(default="", blank=True)
+
+    response_example = models.JSONField(
+        default=dict,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ['http_status']
+
+    def __str__(self):
+        return f"{self.apidoc} | [{self.http_status}] Response Sample"
