@@ -49,7 +49,7 @@ class APIDocSerializer(serializers.ModelSerializer):
     project_under = serializers.PrimaryKeyRelatedField(read_only=True)
     request_bodies = APIRequestListSerializer(many=True, read_only=True)
     response_bodies = APIResponseListSerializer(many=True, read_only=True)
-    url_parameters = URLParameterListSerializer(many=True)
+    url_parameters = URLParameterListSerializer(many=True, read_only=True)
 
     class Meta:
         model = APIDoc
