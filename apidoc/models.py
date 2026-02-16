@@ -59,8 +59,25 @@ class HttpStatus(models.IntegerChoices):
     HTTP_503_SERVICE_UNAVAILABLE = 503, '503 Service Unavailable'
     HTTP_504_GATEWAY_TIMEOUT = 504, '504 Gateway Timeout'
 
+class URLParameter(models.Model):
+    parameter = models.CharField(max_length=255)
+    description = models.TextField()
+    project_under = models.ForeignKey(Project, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        if self.parameter:
+            self.parameter = "{" + self.parameter.strip("{}") + "}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.project_under} | {self.parameter}"
+
+    def get_prompt_text(self):
+        return f"{self.parameter} | {self.description}"
+    
 class APIDoc(models.Model):
     url = models.URLField(max_length=250)
+    url_parameters = models.ManyToManyField(URLParameter, related_name="apidocs")
     http_method = models.CharField(max_length=20, choices=HTTP_METHOD_CHOICES, default='GET')
     method_order = models.IntegerField(default=0, db_index=True, editable=False)
     request_headers = models.JSONField(default=dict, blank=True)
