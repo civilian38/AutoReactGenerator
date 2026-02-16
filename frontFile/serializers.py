@@ -51,7 +51,7 @@ class ProjectFileCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectFile
         fields = '__all__'
-        read_only_fields = ['draft_content', 'created_at', 'updated_at']
+        read_only_fields = ['draft_content', 'created_at', 'updated_at', 'description', 'draft_description']
     
     def validate(self, data):
         project_object = data.get('project_under')
@@ -67,11 +67,10 @@ class ProjectFileCreateSerializer(serializers.ModelSerializer):
 
 class ProjectFileUpdateDeleteSerializer(serializers.ModelSerializer):
     project_under = serializers.PrimaryKeyRelatedField(read_only=True)
-
+    
     class Meta:
         model = ProjectFile
-        fields = '__all__'
-        read_only_fields = ['draft_content', 'project_under', 'created_at', 'updated_at']
+        fields = ('id', 'project_under', 'folder', 'name', 'content', 'is_required')
     
     def validate(self, data):
         project_object = self.instance.project_under
@@ -94,7 +93,7 @@ class ProjectFileRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectFile
-        fields = ['id', 'project_under', 'folder', 'name', 'content', 'draft_content', 'has_draft', 'created_at', 'updated_at', 'file_path']
+        fields = ['id', 'project_under', 'folder', 'name', 'content', 'draft_content', 'has_draft', 'created_at', 'updated_at', 'file_path', 'is_required']
         read_only_fields = fields   
 
 class ProjectFileListSerializer(serializers.ModelSerializer):
