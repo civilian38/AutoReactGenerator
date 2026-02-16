@@ -77,7 +77,7 @@ class URLParameter(models.Model):
     
 class APIDoc(models.Model):
     url = models.URLField(max_length=250)
-    url_parameters = models.ManyToManyField(URLParameter, related_name="apidocs")
+    url_parameters = models.ManyToManyField(URLParameter, related_name="apidocs", blank=True)
     http_method = models.CharField(max_length=20, choices=HTTP_METHOD_CHOICES, default='GET')
     method_order = models.IntegerField(default=0, db_index=True, editable=False)
     request_headers = models.JSONField(default=dict, blank=True)

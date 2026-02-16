@@ -1,45 +1,51 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import APIDoc, APIRequestBody, APIResponseBody
+# URLParameter 모델을 임포트 추가해야 합니다.
+from .models import APIDoc, APIRequestBody, APIResponseBody, URLParameter
 
 # 1. APIDoc 내부에서 Request/Response Body를 바로 편집할 수 있도록 Inline 정의
 class APIRequestBodyInline(admin.StackedInline):
     model = APIRequestBody
-    extra = 0  # 기본으로 보여주는 빈 칸 수 (0으로 설정하여 깔끔하게 유지)
-    classes = ['collapse'] # 내용이 길어질 수 있으므로 접을 수 있게 설정
+    extra = 0
+    classes = ['collapse']
 
 class APIResponseBodyInline(admin.StackedInline):
     model = APIResponseBody
     extra = 0
     classes = ['collapse']
 
+# [NEW] URLParameter를 독립적으로 관리하기 위한 Admin 설정
+@admin.register(URLParameter)
+class URLParameterAdmin(admin.ModelAdmin):
+    list_display = ('parameter', 'description', 'project_under')
+    list_filter = ('project_under',)
+    search_fields = ('parameter', 'description')
+    ordering = ('project_under', 'parameter')
+
 # 2. APIDoc Admin 설정
 @admin.register(APIDoc)
 class APIDocAdmin(admin.ModelAdmin):
-    # ID를 맨 앞에 배치하여 식별 용이하게 설정
     list_display = (
         'id', 
         'project_under', 
-        'get_colored_method', # 메서드에 색상을 입힌 함수
+        'get_colored_method', 
         'url', 
+        'get_url_params_display', # [NEW] 리스트에서 파라미터 확인용 함수 추가
         'created_by', 
         'created_at'
     )
     
-    # ID나 URL을 클릭하면 수정 페이지로 이동
     list_display_links = ('id', 'url')
     
-    # 우측 필터 옵션
     list_filter = ('project_under', 'http_method', 'created_by')
     
-    # 검색 기능 (URL, 설명, 프로젝트 이름 등)
-    search_fields = ('url', 'description', 'project_under__title') # project에 title 필드가 있다고 가정
+    search_fields = ('url', 'description', 'project_under__title')
     
-    # 상세 페이지에서 연관된 Body 모델들을 같이 보여줌
     inlines = [APIRequestBodyInline, APIResponseBodyInline]
     
-    # 데이터가 많을 경우 드롭다운 대신 돋보기 팝업 사용 (선택 사항)
-    # raw_id_fields = ('project_under', 'created_by')
+    # [NEW] ManyToMany 필드인 url_parameters를 좌우 선택 박스(UI)로 보여줍니다.
+    # 데이터가 많을 때 선택하기 가장 편리한 방식입니다.
+    filter_horizontal = ('url_parameters',)
 
     # HTTP Method에 따라 색상을 다르게 표시하는 메서드
     def get_colored_method(self, obj):
@@ -57,8 +63,16 @@ class APIDocAdmin(admin.ModelAdmin):
         )
     get_colored_method.short_description = 'Method'
 
+    # [NEW] 연결된 URL Parameter들을 리스트 화면에서 간단히 보여주는 메서드
+    def get_url_params_display(self, obj):
+        params = obj.url_parameters.all()
+        if params.exists():
+            return ", ".join([p.parameter for p in params])
+        return "-"
+    get_url_params_display.short_description = "URL Params"
 
-# 3. APIRequestBody Admin 설정 (개별적으로 볼 경우를 대비)
+
+# 3. APIRequestBody Admin 설정
 @admin.register(APIRequestBody)
 class APIRequestBodyAdmin(admin.ModelAdmin):
     list_display = ('id', 'apidoc', 'short_description')
@@ -79,7 +93,6 @@ class APIResponseBodyAdmin(admin.ModelAdmin):
     search_fields = ('description', 'apidoc__url')
 
     def get_status_display(self, obj):
-        # HttpStatus Enum의 라벨을 가져오거나 상태 코드를 표시
         return f"{obj.http_status} ({obj.get_http_status_display()})"
     get_status_display.short_description = "HTTP Status"
 
