@@ -32,6 +32,13 @@ class GenerationSessionLCView(ListCreateAPIView):
             return GenerationSessionCreateSerializer
         return GenerationSessionListSerializer
     
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        project = instance.project_under
+        required_files = ProjectFile.objects.filter(project_under=project, is_required=True)
+        if required_files.exists():
+            instance.related_files.add(*required_files)
+    
 class SessionStatusCompletedView(APIView):
     def post(self, request, pk):
         session_object = get_object_or_404(GenerationSession, pk=pk)
