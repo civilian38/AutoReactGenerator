@@ -64,11 +64,12 @@ class FolderRUDView(RetrieveUpdateDestroyAPIView):
     
     def get_serializer_context(self):
         context = super().get_serializer_context()
+
+        if getattr(self, 'swagger_fake_view', False):
+            return context
+
         context['project'] = self.get_object().project_under
         return context
-
-    def perform_update(self, serializer):
-        serializer.save(project_under=serializer.instance.project_under)
 
 class ProjectFileCView(CreateAPIView):
     permission_classes = [IsOwnerOrReadOnly]
