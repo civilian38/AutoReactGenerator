@@ -108,6 +108,10 @@ class APIDoc(models.Model):
     
     def get_prompt_text(self):
         text = f"URL: {self.url}\n"
+        if self.url_parameters.all():
+            text += "URL parameter:\n"
+            for parameter in self.url_parameters.all():
+                text += parameter.get_prompt_text() + "\n"
         text += f"요청 종류: {self.http_method}\n"
         text += f"요청에 대한 설명: {self.description}\n"
         
