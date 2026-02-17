@@ -32,6 +32,13 @@ class GenerationSessionLCView(ListCreateAPIView):
             return GenerationSessionCreateSerializer
         return GenerationSessionListSerializer
     
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        project = instance.project_under
+        required_files = ProjectFile.objects.filter(project_under=project, is_required=True)
+        if required_files.exists():
+            instance.related_files.add(*required_files)
+    
 class SessionStatusCompletedView(APIView):
     def post(self, request, pk):
         session_object = get_object_or_404(GenerationSession, pk=pk)
@@ -182,6 +189,48 @@ class SessionChatView(APIView):
                 {"error": f"Failed to start generation: {str(e)}"}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+  
+class SessionBatchUpdateView(APIView):
+    def patch(self, request, session_id):
+        session = get_object_or_404(GenerationSession, pk=session_id)
+        self.check_object_permissions(request, session)
+
+        serializer = M2MBatchUpdateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        field_mapping = {
+            'apidoc': 'related_apidocs',
+            'file': 'related_files',
+            'page': 'related_pages',
+            'discussion': 'related_discussions',
+        }
+        
+        try:
+            with transaction.atomic():
+                for k, v in field_mapping.items():
+                    data = serializer.validated_data.get(k)
+                    
+                    if data:
+                        manager = getattr(session, v)
+                        
+                        to_add_ids = data.get('to_add', [])
+                        if to_add_ids:
+                            manager.add(*to_add_ids)
+                        
+                        to_pop_ids = data.get('to_pop', [])
+                        if to_pop_ids:
+                            manager.remove(*to_pop_ids)
+
+                return_data = GenerationSessionCreateSerializer(
+                    session, 
+                    context={'request': request}
+                ).data
+                
+                return Response(return_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 """

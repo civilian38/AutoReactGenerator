@@ -63,6 +63,7 @@ def request_file_generation_task(self, session_id, user_id, last_chat_id):
             for modification_data in response_result.files_to_modify:
                 target_file = ProjectFile.objects.get(id=modification_data.file_id)
                 target_file.draft_content = modification_data.modify_content
+                target_file.draft_description = modification_data.description
                 target_file.save()
 
                 related_files_to_add.add(target_file)
@@ -74,8 +75,9 @@ def request_file_generation_task(self, session_id, user_id, last_chat_id):
                     project_under=project,
                     folder=folder,
                     name=creation_data.filename,
-                    content=None,
-                    draft_content=creation_data.content
+                    content="",
+                    draft_content=creation_data.content,
+                    draft_description=creation_data.description
                 )
                 related_files_to_add.add(new_file)
 

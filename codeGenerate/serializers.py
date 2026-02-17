@@ -63,3 +63,13 @@ class SessionChatListSerializer(serializers.ModelSerializer):
         model = SessionChat
         fields = ('content', 'created_at', 'is_by_user')
         read_only_fields = fields
+
+class AddAndPopSerializer(serializers.Serializer):
+    to_add = serializers.ListField(child=serializers.IntegerField(), required=False, default=[])
+    to_pop = serializers.ListField(child=serializers.IntegerField(), required=False, default=[])
+
+class M2MBatchUpdateSerializer(serializers.Serializer):
+    apidoc = AddAndPopSerializer(required=False)
+    file = AddAndPopSerializer(required=False)
+    page = AddAndPopSerializer(required=False)
+    discussion = AddAndPopSerializer(required=False)

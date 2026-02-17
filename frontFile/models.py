@@ -54,6 +54,9 @@ class ProjectFile(models.Model):
     draft_content = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_required = models.BooleanField(default=False)
+    description = models.TextField(blank=True, default="")
+    draft_description = models.TextField(blank=True, default="")
 
     def __str__(self):
         return f'[{self.id}] {self.folder.get_full_path()}/{self.name}'
@@ -63,6 +66,22 @@ class ProjectFile(models.Model):
     
     def has_draft_content(self):
         return bool(self.draft_content)
+    
+    def get_list_text(self):
+        description_text = self.draft_description if self.draft_description else self.description
+        return f"[ID: {self.id}] {self.get_file_path()} | {description_text if description_text else "아직 description이 생성되지 않았습니다."}"
+    
+    def apply_draft(self):
+        self.content = self.draft_content
+        self.draft_content = ""
+        self.description = self.draft_description
+        self.draft_description = ""
+        self.save()
+    
+    def discard_draft(self):
+        self.draft_content = ""
+        self.draft_description = ""
+        self.save()
     
     def get_prompt_text(self):
         text = "=" * 5 + f"{self.get_file_path()} | File ID: {self.id}" + "=" * 5 + "\n"

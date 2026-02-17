@@ -1,16 +1,17 @@
 from google import genai
+from google.genai import types
 from pydantic import BaseModel, Field, create_model, AfterValidator, PlainSerializer
-from enum import IntEnum
+from enum import IntEnum, Enum
 from typing import List, Annotated, Optional
+from celery.utils.log import get_task_logger
 
 from authentication.models import ARUser
-from frontFile.models import Folder
+from frontFile.models import Folder, ProjectFile
 from .models import GenerationSession, SessionChat
 from .prompt import *
 from .helper import get_root_folder_with_prefetch_related
 
-class FolderToCreate(BaseModel):
-    filepath: str = Field(description="생성할 폴더의 전체 경로 문자열. (예시: '[project_name]/src/components/buttons'). 주의: './'나 '/'로 시작하지 말고, '[project_name]'와 같은 최상위 폴더부터 작성할 것.")
+logger = get_task_logger(__name__)
 
 def get_folder_to_create_list_model(project_name: str):
     FolderToCreate = create_model(
@@ -46,7 +47,8 @@ def get_response_format_model(files_ids: List[int], folders_ids: List[int]):
     FileToModify = create_model(
         'FileToModify', 
         file_id=(FileRestrictedInt, Field(description=f"수정할 파일의 id. 파일의 id는 파일 명 뒤에 | File ID: [] 로 적혀있다.")),
-        modify_content=(str, Field(description="파일의 수정본. 수정본은 반드시 완성된 전체 코드로 되어 있어야 함."))
+        modify_content=(str, Field(description="파일의 수정본. 수정본은 반드시 완성된 전체 코드로 되어 있어야 함.")),
+        description=(str, Field(description="다음 코드 생성 에이전트가 자신이 구현하고 있는 사항에 이 코드가 필요한지 판단하기 위해 참고할 설명. 1~2문장 이내로 작성할 것."))
     )
 
     FolderIdEnum = IntEnum('FolderIdEnum', {f'ID_{item}': item for item in folders_ids})
@@ -59,7 +61,8 @@ def get_response_format_model(files_ids: List[int], folders_ids: List[int]):
         'FileToCreate',
         folder_id=(FolderRestrictedInt, Field(description="새롭게 만들 파일이 위치할 폴더의 id. 폴더의 id는 폴더 목록에서 폴더 경로 앞에 [0] 과 같이 적혀 있다.")),
         filename=(str,Field(description="새로운 파일의 파일 명. 확장자까지 명시할 것.")),
-        content=(str, Field(description="새로운 파일의 완성된 전체 코드"))
+        content=(str, Field(description="새로운 파일의 완성된 전체 코드")),
+        description=(str, Field(description="다음 코드 생성 에이전트가 자신이 구현하고 있는 사항에 이 코드가 필요한지 판단하기 위해 참고할 설명. 1~2문장 이내로 작성할 것."))
     )
 
     ResponseFormat = create_model(
@@ -142,7 +145,7 @@ def get_folder_generation_prompt(session_id) -> str:
         request_text += "=====Chats====="
         request_text += request_init_message + "\n"
         for chat in Chats:
-            request_text += f"({"USER" if chat.is_by_user else "AGENT"}) {chat.content}\n"
+            request_text += f"({'USER' if chat.is_by_user else 'AGENT'}) {chat.content}\n"
     
     request_text += "\n" * 3
     request_text += folder_generate_final_message
@@ -197,12 +200,20 @@ def get_generation_prompt(session_id):
     request_text += root_folder.get_tree_structure() + "\n"
     request_text += "=" * 8 + "\n"
 
-    # files
+    # related files
     if context_data.get('files'):
         request_text += "====(기존 파일)====\n"
         request_text += file_init_message + "\n"
         for file in context_data.get('files'):
             request_text += file.get_prompt_text() + "\n"
+
+    # entire file list
+    all_files = ProjectFile.objects.filter(project_under=session_project).all()
+    request_text += "====File List====\n"
+    request_text += file_list_init_message + "\n"
+    for file in all_files:
+        request_text += file.get_list_text() + "\n"
+    request_text += "=" * 8 + "\n"
 
     # pages
     if context_data.get('pages'):
@@ -224,24 +235,32 @@ def get_generation_prompt(session_id):
 
     return request_text
 
-def generation_request(session_id, user_id, model_type, prompt, response_format):
+def generation_request(user_id, model_type, prompt, response_format, tools=None):
     user_obj = ARUser.objects.get(id=user_id)
     api_key = user_obj.gemini_key_encrypted
     client = genai.Client(api_key=api_key)
 
-    current_session =  GenerationSession.objects.prefetch_related(
-            'related_files',
-        ).get(id=session_id)
-    context_data = current_session.get_related_files()
+    if tools is None:
+        tools = []
 
     ResponseFormat = response_format
+    if tools:
+        config = types.GenerateContentConfig(
+            tools=tools,
+            response_mime_type="application/json",
+            response_json_schema=ResponseFormat.model_json_schema(),
+            automatic_function_calling=types.AutomaticFunctionCallingConfig(disable=False)
+        )
+    else:
+        config = types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_json_schema=ResponseFormat.model_json_schema(),
+        )
+
     response = client.models.generate_content(
         model=model_type,
         contents=prompt,
-        config={
-            "response_mime_type": "application/json",
-            "response_json_schema": ResponseFormat.model_json_schema()
-        }
+        config=config
     )
 
     if not response.text:
@@ -261,27 +280,42 @@ def request_folder_generation(session_id, user_id):
     current_session =  GenerationSession.objects.get(id=session_id)
     
     return generation_request(
-        session_id, 
         user_id, 
-        "gemini-2.5-flash",
+        "gemini-3-flash-preview",
         get_folder_generation_prompt(session_id),
         get_folder_to_create_list_model(current_session.project_under.name)
     )
 
 def request_code_generation(session_id, user_id):
-    current_session =  GenerationSession.objects.prefetch_related(
-            'related_files',
-        ).get(id=session_id)
-    context_data = current_session.get_related_files()
-    related_files_ids = [file.id for file in context_data.get('files')]
+    current_session =  GenerationSession.objects.get(id=session_id)
+    project = current_session.project_under
+    related_files_ids = [file.id for file in ProjectFile.objects.filter(project_under=project)]
 
-    folders = Folder.objects.filter(project_under=current_session.project_under)
+    folders = Folder.objects.filter(project_under=project)
     related_folders_ids = [folder.id for folder in folders]
 
+    def file_search_function_call(file_id_list: List[int]) -> List[str]:
+        """
+        내용이 제공된 파일들 외에 추가로 내용을 알아야 할 파일이 있다면, 해당 파일의 ID를 리스트로 받아 해당 파일들의 내용을 조회하여 반환합니다.
+        
+        Args:
+            file_id_list: 내용이 명시되지 않은 파일 중 내용을 확인해야만 하는 파일의 ID 값들을 담은 리스트입니다. 각 파일의 ID는 FileList 란에 [ID: {id}]와 같이 명시되어 있습니다. 반드시 FileList 란에 명시된 ID 중에서만 선택하세요.
+
+        Returns:
+            요청한 파일들의 내용들을 담은 문자열 리스트
+        """
+
+        results = []
+        files = ProjectFile.objects.filter(id__in=file_id_list)
+        for file in files:
+            results.append(file.get_prompt_text())
+        
+        return results
+
     return generation_request(
-        session_id, 
         user_id, 
-        "gemini-2.5-pro",
+        "gemini-3-pro-preview",
         get_generation_prompt(session_id),
-        get_response_format_model(related_files_ids, related_folders_ids)
+        get_response_format_model(related_files_ids, related_folders_ids),
+        [file_search_function_call]
     )
