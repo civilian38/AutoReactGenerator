@@ -1,3 +1,1 @@
 # 구현 필요 사항
-- Generation Session M2M field Batch Update
-- Generation Session Chat List

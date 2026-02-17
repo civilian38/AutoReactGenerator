@@ -126,6 +126,3 @@ class URLParameterRetrieveUpdateSerializer(serializers.ModelSerializer):
 class ParameterRelationUpdateSerializer(serializers.Serializer):
     to_add = serializers.ListField(child=serializers.IntegerField(), required=False, default=[])
     to_pop = serializers.ListField(child=serializers.IntegerField(), required=False, default=[])
-
-    class Meta:
-        fields = ('to_add', 'to_pop')
