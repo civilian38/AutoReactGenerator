@@ -69,7 +69,7 @@ class ProjectFile(models.Model):
     
     def get_list_text(self):
         description_text = self.draft_description if self.draft_description else self.description
-        return f"[ID: {self.id}] {self.get_file_path()} | {description_text}"
+        return f"[ID: {self.id}] {self.get_file_path()} | {description_text if description_text else "아직 description이 생성되지 않았습니다."}"
     
     def apply_draft(self):
         self.content = self.draft_content

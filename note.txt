@@ -1,3 +1,3 @@
 # 구현 필요 사항
-- project description 수정 기능
-- Base Model에 대한 정보 추가
+- Generation Session M2M field Batch Update
+- Generation Session Chat List
