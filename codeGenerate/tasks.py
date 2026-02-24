@@ -2,6 +2,7 @@ from .models import GenerationSession, SessionChat
 from .LLMService import request_code_generation, request_folder_generation
 
 from frontFile.models import ProjectFile, Folder
+from project.models import Project
 
 import logging
 from django.db import transaction
@@ -89,6 +90,9 @@ def request_file_generation_task(self, session_id, user_id, last_chat_id):
                 project.to_do_request = response_result.to_do_request
             project.save()
 
+            # clean empty folders
+            project.clean_empty_folders()
+
             # reply to user message
             SessionChat.objects.create(
                 session_under=session,
@@ -113,6 +117,8 @@ def request_file_generation_task(self, session_id, user_id, last_chat_id):
                 session = GenerationSession.objects.select_for_update().get(id=session_id)
                 session.is_occupied = False
                 session.save()
+                project = Project.objects.select_for_update().get(id=session.project_under.id)
+                project.clean_empty_folders()
 
                 SessionChat.objects.filter(id=last_chat_id).delete()
 

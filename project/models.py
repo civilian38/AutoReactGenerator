@@ -29,3 +29,7 @@ class Project(models.Model):
             parent_folder__isnull=True    
         ).first()
         return root_folder
+
+    def clean_empty_folders(self):
+        root_folder = self.get_root_folder()
+        root_folder.clean_empty_subfolders()

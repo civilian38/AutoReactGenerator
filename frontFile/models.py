@@ -16,6 +16,12 @@ class Folder(models.Model):
     
     def is_root(self):
         return self.parent_folder is None
+
+    def clean_empty_subfolders(self):
+        for subfolder in self.subfolders.all():
+            subfolder.clean_empty_subfolders()
+            if subfolder.subfolders.count() == 0 and subfolder.files.count() == 0:
+                subfolder.delete()
     
     def get_tree_structure(self, parent_structure=""):
         return_text = str()

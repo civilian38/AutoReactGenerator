@@ -299,7 +299,7 @@ def request_code_generation(session_id, user_id):
         내용이 제공된 파일들 외에 추가로 내용을 알아야 할 파일이 있다면, 해당 파일의 ID를 리스트로 받아 해당 파일들의 내용을 조회하여 반환합니다.
         
         Args:
-            file_id_list: 내용이 명시되지 않은 파일 중 내용을 확인해야만 하는 파일의 ID 값들을 담은 리스트입니다. 각 파일의 ID는 FileList 란에 [ID: {id}]와 같이 명시되어 있습니다. 반드시 FileList 란에 명시된 ID 중에서만 선택하세요.
+            file_id_list: 내용이 명시되지 않은 파일 중 내용을 확인해야만 하는 파일의 ID 값들을 담은 리스트입니다. 각 파일의 ID는 FileList 란에 [ID: {id}]와 같이 명시되어 있습니다. 반드시 FileList 란에 명시된 ID 중에서만 선택하세요. 이미 내용을 알고 있는 파일의 경우, 동일한 파일의 내용을 요청하지 마십시오.
 
         Returns:
             요청한 파일들의 내용들을 담은 문자열 리스트
@@ -314,7 +314,7 @@ def request_code_generation(session_id, user_id):
 
     return generation_request(
         user_id, 
-        "gemini-3-pro-preview",
+        "gemini-3.1-pro-preview",
         get_generation_prompt(session_id),
         get_response_format_model(related_files_ids, related_folders_ids),
         [file_search_function_call]
