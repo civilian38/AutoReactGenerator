@@ -64,6 +64,9 @@ class ProjectFile(models.Model):
     description = models.TextField(blank=True, default="")
     draft_description = models.TextField(blank=True, default="")
 
+    class Meta:
+        ordering = ["project_under"]
+
     def __str__(self):
         return f'[{self.id}] {self.folder.get_full_path()}/{self.name}'
     
