@@ -83,6 +83,18 @@ class ProjectFileRUDView(RetrieveUpdateDestroyAPIView):
         if self.request.method == 'GET':
             return ProjectFileRetrieveSerializer
         return ProjectFileUpdateDeleteSerializer
+    
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        
+        incoming_content = serializer.validated_data.get('content')
+
+        if incoming_content is not None:
+            if instance.has_draft_content():
+                serializer.save(draft_content=incoming_content, content=instance.content)
+                return
+        
+        serializer.save()
 
 class FileIsRequiredToggleView(APIView):
     def post(self, request, file_id):
