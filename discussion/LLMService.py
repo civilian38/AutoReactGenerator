@@ -24,7 +24,7 @@ def generate_chat_response(discussion_id, user_id):
     api_key = user_obj.gemini_key_encrypted
 
     client = genai.Client(api_key=api_key)
-    chat_generator = client.chats.create(model="gemini-2.5-pro", history=history)
+    chat_generator = client.chats.create(model="gemini-3.1-pro-preview", history=history)
     response = chat_generator.send_message("")
     return response.text
 
@@ -47,7 +47,7 @@ def summarize_chats(discussion_id, user_id):
 
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
-        model="gemini-2.5-pro",
+        model="gemini-3.1-pro-preview",
         contents=message
     )
     return response.text
@@ -65,7 +65,7 @@ def generate_short_summary(discussion_id, user_id):
 
     client = genai.Client(api_key=api_key)
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash",
         contents=message
     )
     return response.text

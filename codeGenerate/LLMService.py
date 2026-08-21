@@ -281,7 +281,7 @@ def request_folder_generation(session_id, user_id):
     
     return generation_request(
         user_id, 
-        "gemini-3-flash-preview",
+        "gemini-3.5-flash",
         get_folder_generation_prompt(session_id),
         get_folder_to_create_list_model(current_session.project_under.name)
     )
